@@ -1,0 +1,144 @@
+{
+ "target": "old",
+ "project": "forge-demo-pomodoro",
+ "started": "2026-10-23T03:54:55",
+ "summary": {
+  "cases": 10,
+  "pass": 9,
+  "fail": 0,
+  "skip": 1
+ },
+ "integrity": {
+  "unchanged": true,
+  "changed": []
+ },
+ "setup_error": null,
+ "cases": [
+  {
+   "id": "L01",
+   "name": "根地址是页面包索引页，列出每个页面包",
+   "status": "pass",
+   "evidence": [
+    "✓ / → 200 HTML（实际：200）",
+    "✓ 列出页面包 pomodoro",
+    "✓ /index.html 同样是索引页"
+   ]
+  },
+  {
+   "id": "L02",
+   "name": "/api/lab/status 和 /api/lab/packs",
+   "status": "pass",
+   "evidence": [
+    "✓ ok、repoName = 项目目录名（实际：{\"ok\": true, \"repoName\": \"forge-demo-pomodoro\"}）",
+    "✓ port = 服务端口（实际：51547）",
+    "✓ revs 覆盖全部页面包 ['pomodoro']（实际：{\"pomodoro\": \"5e55baad7168\"}）",
+    "✓ packs 列出全部页面包（实际：[\"pomodoro\"]）",
+    "✓ pomodoro 有 12 位 rev（实际：5e55baad7168）",
+    "✓ pomodoro 的 rev 和 status 里的一致"
+   ]
+  },
+  {
+   "id": "L03",
+   "name": "页面包能打开：骨架 HTML、引擎、tokens.js、跨目录引用的前端 css 都 200",
+   "status": "pass",
+   "evidence": [
+    "✓ /docs/assets/visuals/pomodoro/2026-10-23-skeleton-v1.0.html → 200（实际：200）",
+    "✓   引用 ../_workbench/workbench.css → 200（实际：200）",
+    "✓   引用 ../../../../pomodoro.tokens.css → 200（实际：200）",
+    "✓   引用 pomodoro.tokens.js → 200（实际：200）",
+    "✓   引用 ../_workbench/workbench.js → 200（实际：200）"
+   ]
+  },
+  {
+   "id": "L04",
+   "name": "保存：改一个节点的值 → 三件直写且同源，回执 last-save.json 和 saves.jsonl",
+   "status": "pass",
+   "evidence": [
+    "✓ 200（实际：{\"ok\": true, \"at\": \"2026-10-23T07:31:04\", \"repo\": \"<沙盒>/forge-demo-pomodoro\", \"page\": \"pomodoro\", \"version\": \"v1.0\", \"stale\": false, \"nodes_）",
+    "✓ ok，没过期（实际：{\"ok\": true, \"stale\": false}）",
+    "✓ changes 只有 s.col-max（实际：[{\"id\": \"s.col-max\", \"label\": \"内容列最大宽\", \"from\": 480, \"to\": 481, \"mod\": \"frame\", \"g\": \"structure\"}]）",
+    "✓ files 是 json / js / css 三件（实际：[\"docs/assets/visuals/pomodoro/pomodoro.tokens.json\", \"docs/assets/visuals/pomodoro/pomodoro.tokens.js\", \"pomodoro.tokens.css\"]）",
+    "✓ json 里该节点 = 新值",
+    "✓ js / css 和 build_tokens 从 json 生成的逐字节一致（三件同源）",
+    "✓ baseline.changed = 1（实际：{\"from\": \"工作台服务保存 2026-10-23T07:31:04\", \"changed\": 1, \"changed_after\": \"s.col-max=481\", \"unsure\": [], \"stale_nodes_user_not_seen\": []}）",
+    "✓ last-save.json 和回执一致",
+    "✓ saves.jsonl 追加了一行（实际：1）",
+    "✓ 回执 rev = 保存后的版本戳（页面靠它不自我重载）（实际：[\"d725a7b7890d\", \"d725a7b7890d\"]）",
+    "✓ 同样内容再存一次：ok、无值改动",
+    "✓ saves.jsonl 又追加一行（流水不丢）（实际：2）"
+   ]
+  },
+  {
+   "id": "L05",
+   "name": "按 id 合并：页面没见过的节点保留、页面多出的节点丢弃，回执里点名",
+   "status": "pass",
+   "evidence": [
+    "✓ ok，stale = true（实际：{\"ok\": true, \"stale\": true}）",
+    "✓ nodes_user_not_seen = [s.col-max]（实际：[\"s.col-max\"]）",
+    "✓ nodes_removed = [ds.ghost-node]（实际：[\"ds.ghost-node\"]）",
+    "✓ 磁盘上：没见过的节点还在，多出的节点没写进去",
+    "✓ decisions 只留磁盘上有的节点（实际：{\"s.lift\": {\"r\": \"unsure\"}}）",
+    "✓ 反馈追加 1 条，回执 new_feedback 对得上"
+   ]
+  },
+  {
+   "id": "L06",
+   "name": "保存的错误：缺 files.json、路径越界、文件不存在 → 400 ok:false，不落盘",
+   "status": "pass",
+   "evidence": [
+    "✓ 缺 files.json → 400 ok:false（实际：{\"ok\": false, \"error\": \"spec 里没有 files.json\"}）",
+    "✓ 越界 → 400 ok:false（实际：{\"ok\": false, \"error\": \"越界路径\"}）",
+    "✓ 不存在 → 400 ok:false（实际：{\"ok\": false, \"error\": \"磁盘上没有 docs/assets/visuals/没有/没有.tokens.json\"}）",
+    "✓ 页面包和回执都没被改动"
+   ]
+  },
+  {
+   "id": "L07",
+   "name": "安全：Host、Origin（含端口不同）、非 JSON、点开头和越界路径",
+   "status": "pass",
+   "evidence": [
+    "✓ Host=evil.example → 403（实际：403）",
+    "✓ POST Origin=http://evil.example → 403（实际：403）",
+    "✓ POST Origin=http://127.0.0.1:51548 → 403（实际：403）",
+    "✓ POST Origin=null → 403（实际：403）",
+    "✓ POST text/plain → 415（实际：415）",
+    "✓ GET /.env → 404（实际：404）",
+    "✓ GET /.forge/design-lab/last-save.json → 404（实际：404）",
+    "✓ GET /.git/config → 404（实际：404）",
+    "✓ GET /../outside.txt → 404（实际：404）",
+    "✓ GET /%2e%2e/%2e%2e/etc/hosts → 404（实际：404）",
+    "✓ POST 未知接口 → 404（实际：404）"
+   ]
+  },
+  {
+   "id": "L08",
+   "name": "零件库：读 system.tokens.json 带 X-Lab-Rev；页面过期保存 → 409；改模板 → 200 并列出改动",
+   "status": "skip",
+   "evidence": [],
+   "skip": "这个项目没有零件库"
+  },
+  {
+   "id": "U01",
+   "name": "UI：页面包载入引擎，点「保存」走服务直写",
+   "status": "pass",
+   "evidence": [
+    "✓ 引擎载入了页面包 pomodoro",
+    "✓ 点「保存」→ 状态「已保存 … 服务直写」（实际：已保存 03:54 → 服务直写 · 改动 0 · 反馈 +0）",
+    "✓ saves.jsonl 多了一行（实际：[3, 4]）",
+    "✓ 页面脚本零报错（实际：[]）"
+   ]
+  },
+  {
+   "id": "L09",
+   "name": "命令行：已在跑时不重复启动；--status；--stop 停掉并清掉 server.json",
+   "status": "pass",
+   "evidence": [
+    "✓ 再启动一次：提示「已经在跑」，不重复起（实际：= 已经在跑，不重复启动 · http://127.0.0.1:51547/ · pid 89588）",
+    "✓ --status：在跑，带端口（实际：✓ 在跑 · http://127.0.0.1:51547/ · pid 89588 · 绑定 <沙盒>/forge-demo-pomodoro\n    pomodoro       v1.0    ）",
+    "✓ server.json 记着端口",
+    "✓ --stop：已停止，端口关了（实际：✓ 已停止 pid 89588）",
+    "✓ server.json 清掉了"
+   ]
+  }
+ ]
+}
