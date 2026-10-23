@@ -15,7 +15,7 @@
 ## 三步跑起来
 
 ```bash
-git clone <本仓库> design-studio
+git clone https://github.com/antonailog/design-studio.git
 cd design-studio
 python3 design_studio.py serve examples/plain-site/design-studio.json
 ```
@@ -75,6 +75,8 @@ python3 design_studio.py lab <仓库目录> [--port N] [--status | --stop]      
 ```
 
 骨架模式：静态根就是仓库根，页面包在 `docs/assets/visuals/<页面>/`，打开它打印的地址就是页面包索引。一个仓库一个常驻服务，状态记在 `.forge/design-lab/server.json`，已经在跑就不重复启动；端口默认 4577，被占就往后找。保存时按节点 id 合并（值、结局、反馈取页面的，结构取磁盘的），写 `tokens.json` 和由它生成的 `.tokens.js`、`.tokens.css`，回执在 `.forge/design-lab/last-save.json` 和 `saves.jsonl`。页面包的生成、校验脚本和七层审查流程在 forge-design-lab Skill 里；站点配置写 `"lab": true` 时，页面模式的服务也同时提供骨架模式的接口。
+
+和 forge-design-lab 一起用：Skill 依次在环境变量 `DESIGN_STUDIO_HOME`、`~/.design-studio`、`~/design-studio` 找本仓库，推荐 `git clone https://github.com/antonailog/design-studio.git ~/.design-studio`。没找到时 Skill 的 `install.sh` 会打印这条命令。
 
 端口：命令行给了 `--port` 或配置里写了 `port`，就只用这个端口，被占就报错退出。不会悄悄换端口：浏览器里存的草稿和偏好按「地址 + 端口」隔离，换了端口看起来就像全丢了。都没给时从 4580 往后找空闲端口。
 
