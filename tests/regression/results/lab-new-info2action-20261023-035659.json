@@ -1,0 +1,167 @@
+{
+ "target": "new",
+ "project": "info2action",
+ "started": "2026-10-23T03:56:59",
+ "summary": {
+  "cases": 10,
+  "pass": 10,
+  "fail": 0,
+  "skip": 0
+ },
+ "integrity": {
+  "unchanged": true,
+  "changed": []
+ },
+ "setup_error": null,
+ "cases": [
+  {
+   "id": "L01",
+   "name": "根地址是页面包索引页，列出每个页面包",
+   "status": "pass",
+   "evidence": [
+    "✓ / → 200 HTML（实际：200）",
+    "✓ 列出页面包 ai-search",
+    "✓ 列出页面包 <页面包2>",
+    "✓ 列出页面包 system",
+    "✓ /index.html 同样是索引页"
+   ]
+  },
+  {
+   "id": "L02",
+   "name": "/api/lab/status 和 /api/lab/packs",
+   "status": "pass",
+   "evidence": [
+    "✓ ok、repoName = 项目目录名（实际：{\"ok\": true, \"repoName\": \"info2action\"}）",
+    "✓ port = 服务端口（实际：53094）",
+    "✓ revs 覆盖全部页面包 ['ai-search', '<页面包2>', 'system']（实际：{\"ai-search\": \"59ad499f74d7\", \"<页面包2>\": \"dcefdf39b643\", \"system\": \"c825534dec04\"}）",
+    "✓ packs 列出全部页面包（实际：[\"ai-search\", \"<页面包2>\", \"system\"]）",
+    "✓ ai-search 有 12 位 rev（实际：59ad499f74d7）",
+    "✓ ai-search 的 rev 和 status 里的一致",
+    "✓ <页面包2> 有 12 位 rev（实际：dcefdf39b643）",
+    "✓ <页面包2> 的 rev 和 status 里的一致",
+    "✓ system 有 12 位 rev（实际：c825534dec04）",
+    "✓ system 的 rev 和 status 里的一致"
+   ]
+  },
+  {
+   "id": "L03",
+   "name": "页面包能打开：骨架 HTML、引擎、tokens.js、跨目录引用的前端 css 都 200",
+   "status": "pass",
+   "evidence": [
+    "✓ /docs/assets/visuals/ai-search/2026-09-20-skeleton-v32.1.html → 200（实际：200）",
+    "✓   引用 ../_workbench/workbench.css → 200（实际：200）",
+    "✓   引用 ../../../../frontend-react/src/components/ai-search/ai-search.tokens.css → 200（实际：200）",
+    "✓   引用 ai-search.tokens.js → 200（实际：200）",
+    "✓   引用 ../_workbench/workbench.js → 200（实际：200）",
+    "✓ /docs/assets/visuals/<页面包2>/index.html → 200（实际：200）",
+    "✓   引用 ../_workbench/workbench.css → 200（实际：200）",
+    "✓   引用 ../../../../frontend-react/src/styles/<页面包2>.tokens.css → 200（实际：200）",
+    "✓   引用 ../../../../frontend-react/src/styles/<页面包2>.css → 200（实际：200）",
+    "✓   引用 <页面包2>.tokens.js → 200（实际：200）",
+    "✓   引用 ../_workbench/workbench.js → 200（实际：200）",
+    "✓ /docs/assets/visuals/system/system.html → 200（实际：200）",
+    "✓   引用 product.css → 200（实际：200）",
+    "✓   引用 ../_workbench/system.css → 200（实际：200）",
+    "✓   引用 ../_workbench/template-css.js → 200（实际：200）",
+    "✓   引用 ../_workbench/system.js → 200（实际：200）"
+   ]
+  },
+  {
+   "id": "L04",
+   "name": "保存：改一个节点的值 → 三件直写且同源，回执 last-save.json 和 saves.jsonl",
+   "status": "pass",
+   "evidence": [
+    "✓ 200（实际：{\"ok\": true, \"at\": \"2026-10-11T11:46:35\", \"repo\": \"<沙盒>/info2action\", \"page\": \"ai-search\", \"version\": \"v34.0\", \"stale\": false, \"nodes_user_n）",
+    "✓ ok，没过期（实际：{\"ok\": true, \"stale\": false}）",
+    "✓ changes 只有 s.topbar-h（实际：[{\"id\": \"s.topbar-h\", \"label\": \"TopBar 高\", \"from\": 52, \"to\": 53, \"mod\": \"topbar\", \"g\": \"structure\"}]）",
+    "✓ files 是 json / js / css 三件（实际：[\"docs/assets/visuals/ai-search/ai-search.tokens.json\", \"docs/assets/visuals/ai-search/ai-search.tokens.js\", \"frontend-react/src/components/ai-search/ai-search.tokens.css\"]）",
+    "✓ json 里该节点 = 新值",
+    "✓ js / css 和 build_tokens 从 json 生成的逐字节一致（三件同源）",
+    "✓ baseline.changed = 1（实际：{\"from\": \"工作台服务保存 2026-10-11T11:46:35\", \"changed\": 1, \"changed_after\": \"s.topbar-h=53\", \"unsure\": [], \"stale_nodes_user_not_seen\": []}）",
+    "✓ last-save.json 和回执一致",
+    "✓ saves.jsonl 追加了一行（实际：1）",
+    "✓ 回执 rev = 保存后的版本戳（页面靠它不自我重载）（实际：[\"44bfcb9784b2\", \"44bfcb9784b2\"]）",
+    "✓ 同样内容再存一次：ok、无值改动",
+    "✓ saves.jsonl 又追加一行（流水不丢）（实际：2）"
+   ]
+  },
+  {
+   "id": "L05",
+   "name": "按 id 合并：页面没见过的节点保留、页面多出的节点丢弃，回执里点名",
+   "status": "pass",
+   "evidence": [
+    "✓ ok，stale = true（实际：{\"ok\": true, \"stale\": true}）",
+    "✓ nodes_user_not_seen = [s.topbar-h]（实际：[\"s.topbar-h\"]）",
+    "✓ nodes_removed = [ds.ghost-node]（实际：[\"ds.ghost-node\"]）",
+    "✓ 磁盘上：没见过的节点还在，多出的节点没写进去",
+    "✓ decisions 只留磁盘上有的节点（实际：{\"s.entry-order\": {\"r\": \"unsure\"}}）",
+    "✓ 反馈追加 1 条，回执 new_feedback 对得上"
+   ]
+  },
+  {
+   "id": "L06",
+   "name": "保存的错误：缺 files.json、路径越界、文件不存在 → 400 ok:false，不落盘",
+   "status": "pass",
+   "evidence": [
+    "✓ 缺 files.json → 400 ok:false（实际：{\"ok\": false, \"error\": \"spec 里没有 files.json\"}）",
+    "✓ 越界 → 400 ok:false（实际：{\"ok\": false, \"error\": \"越界路径\"}）",
+    "✓ 不存在 → 400 ok:false（实际：{\"ok\": false, \"error\": \"磁盘上没有 docs/assets/visuals/没有/没有.tokens.json\"}）",
+    "✓ 页面包和回执都没被改动"
+   ]
+  },
+  {
+   "id": "L07",
+   "name": "安全：Host、Origin（含端口不同）、非 JSON、点开头和越界路径",
+   "status": "pass",
+   "evidence": [
+    "✓ Host=evil.example → 403（实际：403）",
+    "✓ POST Origin=http://evil.example → 403（实际：403）",
+    "✓ POST Origin=http://127.0.0.1:53095 → 403（实际：403）",
+    "✓ POST Origin=null → 403（实际：403）",
+    "✓ POST text/plain → 415（实际：415）",
+    "✓ GET /.env → 404（实际：404）",
+    "✓ GET /.forge/design-lab/last-save.json → 404（实际：404）",
+    "✓ GET /.git/config → 404（实际：404）",
+    "✓ GET /../outside.txt → 404（实际：404）",
+    "✓ GET /%2e%2e/%2e%2e/etc/hosts → 404（实际：404）",
+    "✓ POST 未知接口 → 404（实际：404）"
+   ]
+  },
+  {
+   "id": "L08",
+   "name": "零件库：读 system.tokens.json 带 X-Lab-Rev；页面过期保存 → 409；改模板 → 200 并列出改动",
+   "status": "pass",
+   "evidence": [
+    "✓ GET 零件库 json → X-Lab-Rev = /api/lab/system-rev（实际：[\"601cb5e0c42b\", \"601cb5e0c42b\"]）",
+    "✓ rev 对不上 → 409 stale（实际：409）",
+    "✓ 改模板 → 200，template_changes 非空（实际：{\"ok\": true, \"page\": \"system\", \"kind\": \"system\", \"files\": [\"docs/assets/visuals/system/system.tokens.json\", \"docs/assets/visuals/system/template.css\"], \"template_changes\": [{\"part\": \"colors\", \"item\": ）",
+    "✓ json 里的 template 换成新值",
+    "✓ template.css 写进去了",
+    "✓ 回执带新的 rev"
+   ]
+  },
+  {
+   "id": "U01",
+   "name": "UI：页面包载入引擎，点「保存」走服务直写",
+   "status": "pass",
+   "evidence": [
+    "✓ 引擎载入了页面包 ai-search",
+    "✓ 点「保存」→ 状态「已保存 … 服务直写」（实际：已保存 03:57 → 服务直写 · 改动 0 · 反馈 +0）",
+    "✓ saves.jsonl 多了一行（实际：[4, 5]）",
+    "✓ 页面脚本零报错（实际：[]）"
+   ]
+  },
+  {
+   "id": "L09",
+   "name": "命令行：已在跑时不重复启动；--status；--stop 停掉并清掉 server.json",
+   "status": "pass",
+   "evidence": [
+    "✓ 再启动一次：提示「已经在跑」，不重复起（实际：= 已经在跑，不重复启动 · http://127.0.0.1:53094/ · pid 93208）",
+    "✓ --status：在跑，带端口（实际：✓ 在跑 · http://127.0.0.1:53094/ · pid 93208 · 绑定 <沙盒>/info2action\n    ai-search      v34.0    205 节点 ）",
+    "✓ server.json 记着端口",
+    "✓ --stop：已停止，端口关了（实际：✓ 已停止 pid 93208）",
+    "✓ server.json 清掉了"
+   ]
+  }
+ ]
+}

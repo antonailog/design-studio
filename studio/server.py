@@ -30,6 +30,7 @@ LOCAL_HOSTS = ('127.0.0.1', 'localhost')
 class Router:
     def __init__(self):
         self.gets, self.posts = {}, {}
+        self.static_headers = []   # fn(真实路径, 文件字节) -> 额外响应头；骨架模式给零件库 json 加 X-Lab-Rev
 
     def get(self, path, fn):
         self.gets[path] = fn
@@ -103,10 +104,19 @@ def make_handler(cfg, router, proxy=None):
                         self.end_headers()
                         return
                     status = 206
+            extra = {}
             with open(full, 'rb') as fh:
-                fh.seek(start)
-                body = fh.read(end - start + 1) if size else b''
+                if router.static_headers:      # 骨架模式：额外头要按整份文件算（零件库 json 的指纹）
+                    whole = fh.read()
+                    body = whole[start:end + 1]
+                    for fn in router.static_headers:
+                        extra.update(fn(full, whole) or {})
+                else:                          # 页面模式：只读请求的那一段（视频分段请求不用整份读）
+                    fh.seek(start)
+                    body = fh.read(end - start + 1) if size else b''
             self.send_response(status)
+            for k, v in extra.items():
+                self.send_header(k, v)
             if status == 206:
                 self.send_header('Content-Range', f'bytes {start}-{end}/{size}')
             self.send_header('Content-Type', mime_of(full))
@@ -124,7 +134,14 @@ def make_handler(cfg, router, proxy=None):
 
         def origin_ok(self):
             origin = self.headers.get('Origin')
-            return not origin or urlparse(origin).hostname in LOCAL_HOSTS
+            if not origin:
+                return True
+            u = urlparse(origin)
+            try:
+                port = u.port
+            except ValueError:
+                return False
+            return u.hostname in LOCAL_HOSTS and port in (None, self.server.server_address[1])
 
         # ---------- GET ----------
         def do_HEAD(self):
@@ -171,6 +188,9 @@ def make_handler(cfg, router, proxy=None):
                 return self.send_json(415, {'error': 'json only'})
             try:
                 n = int(self.headers.get('Content-Length') or 0)
+                if n > 32 * 1024 * 1024:
+                    self.close_connection = True
+                    return self.send_json(400, {'ok': False, 'error': '请求体太大'})
                 body = json.loads(self.rfile.read(n) or b'{}')
                 if not isinstance(body, dict):
                     raise ValueError('请求体要是 JSON 对象')
@@ -194,9 +214,29 @@ class Server(ThreadingHTTPServer):
             self._logger(msg)
 
 
+class LabSite:
+    """骨架模式单独起服务时的站点：没有站点配置，静态根就是仓库根。"""
+    def __init__(self, repo):
+        self.base = self.static_root = os.path.abspath(repo)
+        self.mount = '/_studio/'
+        self.root_redirect = None
+
+
+def build_lab(repo, port, logger=None):
+    from . import lab_mode
+    router = Router()
+    lab_mode.register(router, repo)
+    return Server(('127.0.0.1', port), make_handler(LabSite(repo), router), logger)
+
+
 def build(cfg, port, proxy=None, logger=None):
     router = Router()
     page_mode.register(router, cfg)
+    if cfg.raw.get('lab'):   # 站点配置里开了骨架模式：同一个服务也提供工作台接口，索引页在 <挂载路径>lab/
+        if proxy or os.path.realpath(cfg.static_root) != os.path.realpath(cfg.base):
+            raise SystemExit('站点配置里 lab: true 要求 static_root 就是 base（页面包按仓库根取文件），且不能和 --proxy 一起用')
+        from . import lab_mode
+        lab_mode.register(router, cfg.base, gallery_paths=(cfg.mount + 'lab/',))
     # 接口在编辑器挂载路径下再挂一份（/_studio/api/...），编辑器自己只用这一份。
     # 根路径的 /api/* 留给站点里直接调接口的页面（如反馈框）；代理模式下它属于被编辑的应用，原样转发，避免同名接口被截走
     mount_api = cfg.mount + 'api/'

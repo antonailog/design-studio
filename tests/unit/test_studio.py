@@ -337,5 +337,43 @@ class TestProxyRoutes(unittest.TestCase):
         self.assertEqual(json.loads(body)['path'], '/')
 
 
+class TestLabInConfig(unittest.TestCase):
+    """站点配置里 lab: true：同一个服务既是页面模式，又提供骨架模式的接口，索引页在 <挂载路径>lab/。"""
+
+    def setUp(self):
+        from studio.server import build
+        self.dir = tempfile.mkdtemp()
+        vis = os.path.join(self.dir, 'docs', 'assets', 'visuals', 'demo')
+        os.makedirs(vis)
+        write(os.path.join(vis, 'demo.tokens.json'), json.dumps({'title': '示例页面包', 'nodes': []}))
+        write(os.path.join(vis, '2026-10-23-skeleton-v1.html'), '<p>骨架</p>')
+        write(os.path.join(self.dir, 'index.html'), '<p>首页</p>')
+        cfgpath = os.path.join(self.dir, 'ds.json')
+        write(cfgpath, json.dumps({'lab': True, 'pages': {'首页': {'url': '/index.html', 'html': 'index.html'}}}))
+        self.port = free_port()
+        self.srv = build(Config(cfgpath), self.port)
+        threading.Thread(target=self.srv.serve_forever, daemon=True).start()
+
+    def tearDown(self):
+        self.srv.shutdown()
+        self.srv.server_close()
+        shutil.rmtree(self.dir)
+
+    def get(self, path):
+        c = http.client.HTTPConnection('127.0.0.1', self.port, timeout=10)
+        c.request('GET', path, headers={'Host': f'127.0.0.1:{self.port}'})
+        r = c.getresponse()
+        return r.status, r.read()
+
+    def test_both_modes(self):
+        st, body = self.get('/api/lab/status')
+        self.assertEqual(json.loads(body)['revs'].keys(), {'demo'})
+        st, body = self.get('/_studio/lab/')
+        self.assertIn('示例页面包', body.decode())
+        st, body = self.get('/api/pages')
+        self.assertIn('首页', json.loads(body))
+        self.assertEqual(self.get('/')[0], 302)          # 根地址照旧跳页面模式的首页
+
+
 if __name__ == '__main__':
     unittest.main()
