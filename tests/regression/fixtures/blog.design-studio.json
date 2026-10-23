@@ -1,5 +1,5 @@
 {
- "_说明": "个人博客（阿東的AI手记）的 design-studio 站点配置。切换时复制到博客的 99-其他/design-studio.json；base 指回博客根目录。字段说明见 design-studio 仓库的 docs/config.md。内容照搬旧编辑服务（99-其他/脚本/编辑服务.py）和旧编辑器（4-页面/编辑器/editor.js）里写死的东西。",
+ "_说明": "个人博客（阿東的AI手记）的 design-studio 站点配置的回归副本。真源是博客里的 99-其他/design-studio.json（10-23 起），那边改了要同步过来。base 指回博客根目录。字段说明见 docs/config.md。",
  "base": "..",
  "static_root": "4-页面",
  "port": 4580,

@@ -4,6 +4,8 @@
 
 ## 怎么跑
 
+> 10-23 起博客的 `99-其他/脚本/编辑服务.py` 换成了转调 design-studio 的薄壳，`--target old` 不再能跑出旧服务；旧服务的基线留在 `results/old-*.json`，旧代码在仓库历史之外的备份不进库。
+
 在 design-studio 仓库根目录：
 
 ```bash
