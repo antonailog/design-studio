@@ -1,0 +1,87 @@
+{
+ "_说明": "个人博客（阿東的AI手记）的 design-studio 站点配置。切换时复制到博客的 99-其他/design-studio.json；base 指回博客根目录。字段说明见 design-studio 仓库的 docs/config.md。内容照搬旧编辑服务（99-其他/脚本/编辑服务.py）和旧编辑器（4-页面/编辑器/editor.js）里写死的东西。",
+ "base": "..",
+ "static_root": "4-页面",
+ "port": 4580,
+ "editor_mount": "/编辑器/",
+ "root_redirect": "首页",
+ "sheet_dir": "0-记录/修改单",
+ "feedback_dir": "0-记录/修改单/反馈",
+ "pages": {
+  "首页": {
+   "url": "/首页/首页-v3/v3-7.html",
+   "html": "4-页面/首页/首页-v3/v3-7.html",
+   "data": "4-页面/首页/首页-v3/data/site.js",
+   "sheet": "0-记录/修改单/首页.json",
+   "guide": "4-页面/首页/修改指南.md",
+   "skip": ["nav", "manifesto", "featured", "tags"]
+  }
+ },
+ "after_save": {
+  "label": "脱敏扫描",
+  "cmd": ["{python}", "-I", "99-其他/脚本/脱敏扫描.py", "{file}"],
+  "ignore_prefixes": ["扫了"],
+  "timeout": 60
+ },
+ "text": {
+  "skip_leaf": ["id", "url", "src", "href", "poster", "cover", "image", "qr", "page", "page_base", "avatar", "avatar_note", "domain", "kind", "type", "repo"],
+  "section_keys": {
+   "首屏": ["person", "picks", "contact"],
+   "作品": ["stats"],
+   "项目": ["projects"],
+   "Skill": ["skills"],
+   "小工具": ["tools"],
+   "文章": ["articles"],
+   "近况": ["now", "milestones"],
+   "联系": ["contact", "person"]
+  },
+  "follow": [
+   ["^person\\.tagline$", "口号在哪换行、高亮哪几个字写死在页面脚本 const tag，要同步改"],
+   ["^person\\.name$", "中文名字号按 6 个字算（--name-fs），字数变了要调"],
+   ["^person\\.name_en$", "页面上的英文签名是手写路径，只改这个字段看不出变化，要重新生成签名"],
+   ["^person\\.about\\.", "对外履历的源头在 3-对外/履历/履历.md，要同步过去"],
+   ["^picks\\.\\d+\\.(hook|title)$", "首页精选文案的源头在 3-对外/项目/首页精选.md，要同步过去"],
+   ["\\.tag$", "方向标签只能从标签表里选（3-对外/项目/首页精选.md）"]
+  ],
+  "allowed_tags": ["b", "strong", "em"]
+ },
+ "editor": {
+  "title": "页面编辑器",
+  "viewports": [
+   {"w": 1440, "h": 900, "label": "桌面 1440"},
+   {"w": 1280, "h": 800, "label": "笔记本 1280"},
+   {"w": 390, "h": 844, "label": "手机 390"}
+  ],
+  "theme": {"storage_key": "v2-theme", "attr": "data-theme", "light": "light", "dark": "dark"},
+  "sections": {"top": "首屏", "works": "作品", "projects": "项目", "skills": "Skill", "tools": "小工具", "writing": "文章", "now": "近况", "contact": "联系"},
+  "section_extra": [{"sel": ".topbar", "name": "顶栏"}, {"sel": "footer", "name": "页脚"}],
+  "known": [
+   {"sel": ".topbar", "name": "顶栏", "num": 1},
+   {"sel": ".h4-years", "name": "年份行", "num": 8},
+   {"sel": ".h4-about", "name": "自我介绍", "num": 7},
+   {"sel": "#zhName", "name": "中文名", "num": 3, "hint": "person.name"},
+   {"sel": "#sig", "name": "英文签名", "num": 4},
+   {"sel": ".h4-soc", "name": "社交图标", "num": 5},
+   {"sel": ".h4-quote", "name": "宣言", "num": 6, "hint": "person.tagline"},
+   {"sel": "#ava", "name": "头像", "num": 2},
+   {"sel": ".stk-bar", "name": "指示条", "num": 10},
+   {"sel": "#picks", "name": "精选卡堆", "num": 9}
+  ],
+  "hint_rules": [
+   {"selector": ".h4-about > p:not(.h4-years)", "siblings": ":scope > p:not(.h4-years)", "hint": "person.about.{i}"}
+  ],
+  "ignore_classes": "^(is-|rv$|in$|on$|open$|done$|tick$|active$)",
+  "inline_format_classes": ["bt-seg", "mark"],
+  "styles": {
+   "sizes": ["--fs-12", "--fs-13", "--fs-14", "--fs-15", "--fs-16", "--fs-18", "--fs-20", "--fs-24", "--fs-26", "--fs-28", "--fs-h4", "--fs-h2", "--fs-stat", "--fs-slogan"],
+   "spaces": ["--sp-2", "--sp-4", "--sp-6", "--sp-8", "--sp-10", "--sp-12", "--sp-14", "--sp-16", "--sp-18", "--sp-20", "--sp-24", "--sp-28", "--sp-32", "--sp-40", "--sp-48", "--sp-64", "--sp-88", "--sp-128"],
+   "radii": ["--r-xs", "--r-sm", "--r-in", "--r", "--r-pill"],
+   "line_heights": ["--lh-display", "--lh-title", "--lh-ui", "--lh-text", "--lh-body"],
+   "font_weights": [["300", "细 300"], ["400", "常规 400"], ["500", "中 500"], ["600", "粗 600"]],
+   "fonts": [["--font-title", "标题字（姓名、板块标题）"], ["--font-zh", "中文细体（宣言）"], ["--font-latin", "英文和数字"], ["--font-body", "正文"], ["--font-mono", "等宽"]],
+   "text_colors": ["--fg", "--fg-2", "--muted", "--accent-ink", "--accent"],
+   "bg_colors": ["none", "--bg", "--surface", "--surface-2", "--accent-soft", "--accent"],
+   "color_names": {"--fg": "主文字", "--fg-2": "次文字", "--muted": "说明灰", "--accent-ink": "墨绿", "--accent": "黄绿", "--bg": "页面底", "--surface": "卡片白", "--surface-2": "浅灰", "--accent-soft": "浅黄绿", "--line": "细线", "--line-strong": "深一点的线"}
+  }
+ }
+}

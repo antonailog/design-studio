@@ -467,7 +467,14 @@ def t_editor(ctx, c):
     c.ok('text/html' in (r.header('Content-Type') or ''), 'Content-Type 是 HTML', r.header('Content-Type'))
     body = r.body.decode('utf-8', 'replace')
     c.ok('editor.js' in body and 'id="frame"' in body, '是编辑器页面（含 editor.js 和 #frame）')
-    for sub in ('/编辑器/editor.js', '/编辑器/editor.css', '/设计规范/tokens.css'):
+    if ctx.target == 'old':
+        subs = ['/编辑器/editor.js', '/编辑器/editor.css', '/设计规范/tokens.css']
+    else:   # 新编辑器自带界面样式，不再引用被编辑站点的 tokens.css：改成检查它实际引用的每个本地资源
+        refs = [x for x in re.findall(r'(?:src|href)="([^"#?:]+)"', body) if not x.startswith('data')]
+        subs = [x if x.startswith('/') else '/编辑器/' + x for x in refs]
+        c.ok(any(x.endswith('editor.js') for x in subs) and any(x.endswith('editor.css') for x in subs), '引用了 editor.js 和 editor.css', subs)
+        c.ok(not any('设计规范' in x for x in subs), '不再引用被编辑站点的样式（编辑器界面自带）', subs)
+    for sub in subs:
         r2 = ctx.get(sub)
         c.ok(r2.status == 200, f'{sub} → 200（编辑器页里的相对引用要能取到）', r2.status)
 
@@ -1050,6 +1057,9 @@ def main():
     ap.add_argument('--no-ui', action='store_true', help='跳过 UI 冒烟')
     ap.add_argument('--full-media', action='store_true', help='沙盒里视频、图片也照抄（默认换成小的假文件）')
     ap.add_argument('--extra', action='append', default=[], help='额外带进沙盒的路径（相对博客根目录），可重复')
+    ap.add_argument('--inject', action='append', default=[], metavar='源=目标',
+                    help='把沙盒外的文件放进沙盒：源是本机路径（相对当前目录），目标相对沙盒博客根目录，可重复。'
+                         '例：--inject tests/regression/fixtures/blog.design-studio.json=99-其他/design-studio.json')
     ap.add_argument('--keep', action='store_true', help='跑完保留沙盒，方便排查')
     ap.add_argument('--startup-timeout', type=float, default=20)
     ap.add_argument('--out', default=str(HERE / 'results'), help='结果 JSON 目录')
@@ -1074,6 +1084,16 @@ def main():
     results, setup_error, stats = [], None, {}
     try:
         root, site, stats = build_sandbox(blog, a.full_media, a.extra)
+        for spec in a.inject:
+            src, sep, dst = spec.partition('=')
+            src_p, dst_p = Path(src).resolve(), (site / dst).resolve()
+            if not sep or not src_p.is_file():
+                raise SetupError(f'--inject 要写成 源文件=沙盒里的位置，且源文件要存在：{spec}')
+            if not str(dst_p).startswith(str(site.resolve()) + os.sep):
+                raise SetupError(f'--inject 的目标跑出沙盒了：{dst}')
+            dst_p.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src_p, dst_p)
+            print(f'注入：{src} → <沙盒博客>/{dst}')
         print(f'沙盒：{site}（复制 {stats["files"]} 个文件 {stats["bytes"] / 1e6:.1f} MB，其中 {stats["placeholders"]} 个媒体换成假文件）')
         server = Server(a.target, a.cmd, site, free_port(), a.startup_timeout)
         print(f'服务：{" ".join(shlex.quote(x) for x in server.cmd)}')
