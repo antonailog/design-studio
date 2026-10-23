@@ -4,6 +4,7 @@
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
+  const API = new URL('api/', location.href).pathname;   // 接口挂在编辑器路径下（/_studio/api/），代理模式时不和被编辑应用自己的 /api/* 撞名
   const frame = $('frame'), frameBox = $('frameBox'), stage = $('stage');
   const S = { cfg: {}, pages: {}, page: '', w: 1440, h: 900, mode: 'select', doc: null, win: null,
               sel: null, hover: null, editing: null, items: new Map(), sheet: null, scrollY: 0 };
@@ -471,7 +472,7 @@
     toast(ok ? '已复制。发给 Claude Code 或 Codex，它处理完回到这里刷新就能看到回复。' : '复制失败，浏览器不让写剪贴板。', 5000);
   });
   async function loadSheet() {
-    try { S.sheet = await (await fetch('/api/sheet?page=' + encodeURIComponent(S.page), { cache: 'no-store' })).json(); }
+    try { S.sheet = await (await fetch(API + 'sheet?page=' + encodeURIComponent(S.page), { cache: 'no-store' })).json(); }
     catch (e) { S.sheet = null; }
     renderSheet();
   }
@@ -482,7 +483,7 @@
     if (!S.items.size) return;
     $('save').disabled = true;
     try {
-      const r = await fetch('/api/save', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const r = await fetch(API + 'save', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ page: S.page, items: [...S.items.values()] }) });
       const j = await r.json();
       if (!r.ok || !j.ok) throw new Error(j.error || r.status);
@@ -553,8 +554,8 @@
   (async () => {
     try {
       const [cfg, pages] = await Promise.all([
-        fetch('/api/config', { cache: 'no-store' }).then(r => r.json()),
-        fetch('/api/pages', { cache: 'no-store' }).then(r => r.json()),
+        fetch(API + 'config', { cache: 'no-store' }).then(r => r.json()),
+        fetch(API + 'pages', { cache: 'no-store' }).then(r => r.json()),
       ]);
       S.cfg = cfg || {}; S.pages = pages || {};
       if (S.cfg.ignore_classes) { try { ignoreRe = new RegExp(S.cfg.ignore_classes); } catch (e) { /* 配置写错了，用默认 */ } }

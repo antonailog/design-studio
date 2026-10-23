@@ -175,7 +175,7 @@ def _save_text(cfg, page, it, rec, data_obj, current, originals):
             current[page.html] = new_raw
             rec.update(file=page.rel_html, status='已写入')
             return True
-    rec.update(status='待 AI', note=reason or '没有登记数据文件或 HTML，写不回')
+    rec.update(status='待 AI', note=reason or '这一页没登记数据文件或 HTML（框架站的文字一般在组件代码里），交给 AI 改')
     new_html = wb.clean_html(it.get('newHtml', ''), cfg.allowed_tags)
     if new_html != rec['new']:
         rec['newHtml'] = new_html

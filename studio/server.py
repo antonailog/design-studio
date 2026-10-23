@@ -160,9 +160,9 @@ def make_handler(cfg, router, proxy=None):
                 return self.send_json(403, {'error': 'host'})
             if not self.origin_ok():
                 return self.send_json(403, {'error': 'origin'})
-            route = urlparse(self.path).path
+            route = unquote(urlparse(self.path).path)
             if route not in router.posts:
-                if proxy and not unquote(route).startswith(('/api/', cfg.mount)):
+                if proxy and not route.startswith(cfg.mount):
                     return proxy.forward(self)
                 self.close_connection = True
                 return self.send_json(404, {'error': 'not found'})
@@ -197,5 +197,14 @@ class Server(ThreadingHTTPServer):
 def build(cfg, port, proxy=None, logger=None):
     router = Router()
     page_mode.register(router, cfg)
+    # 接口在编辑器挂载路径下再挂一份（/_studio/api/...），编辑器自己只用这一份。
+    # 根路径的 /api/* 留给站点里直接调接口的页面（如反馈框）；代理模式下它属于被编辑的应用，原样转发，避免同名接口被截走
+    mount_api = cfg.mount + 'api/'
+    for table in (router.gets, router.posts):
+        for path, fn in list(table.items()):
+            if path.startswith('/api/'):
+                table[mount_api + path[len('/api/'):]] = fn
+                if proxy:
+                    del table[path]
     handler = make_handler(cfg, router, proxy)
     return Server(('127.0.0.1', port), handler, logger)

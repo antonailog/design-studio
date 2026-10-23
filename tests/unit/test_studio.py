@@ -285,5 +285,57 @@ class TestServer(unittest.TestCase):
         self.assertEqual(self.call('GET', '/.design-studio/修改单/首页.json')[0], 404)
 
 
+class TestProxyRoutes(unittest.TestCase):
+    """代理模式：编辑器的接口在 /_studio/api/ 下；根路径的 /api/* 属于被编辑的应用，原样转发。"""
+
+    def setUp(self):
+        from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+        from studio.proxy import Proxy
+        from studio.server import build
+
+        class Up(BaseHTTPRequestHandler):
+            def log_message(self, *a):
+                pass
+
+            def do_GET(self):
+                body = json.dumps({'from': 'upstream', 'path': self.path}).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('X-Frame-Options', 'DENY')
+                self.send_header('Content-Length', str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+        self.up = ThreadingHTTPServer(('127.0.0.1', 0), Up)
+        threading.Thread(target=self.up.serve_forever, daemon=True).start()
+        self.dir = tempfile.mkdtemp()
+        cfgpath = os.path.join(self.dir, 'ds.json')
+        write(cfgpath, json.dumps({'pages': {'首页': {'url': '/'}}, 'root_redirect': None}))
+        self.port = free_port()
+        self.srv = build(Config(cfgpath), self.port, Proxy(f'http://127.0.0.1:{self.up.server_address[1]}'))
+        threading.Thread(target=self.srv.serve_forever, daemon=True).start()
+
+    def tearDown(self):
+        for s in (self.srv, self.up):
+            s.shutdown()
+            s.server_close()
+        shutil.rmtree(self.dir)
+
+    def get(self, path):
+        c = http.client.HTTPConnection('127.0.0.1', self.port, timeout=10)
+        c.request('GET', path, headers={'Host': f'127.0.0.1:{self.port}'})
+        r = c.getresponse()
+        return r.status, dict(r.getheaders()), r.read()
+
+    def test_routes(self):
+        st, h, body = self.get('/api/config')            # 应用自己的同名接口：转发，不被截走
+        self.assertEqual(json.loads(body)['from'], 'upstream')
+        self.assertNotIn('X-Frame-Options', h)            # 去掉，免得 iframe 被拦
+        st, _, body = self.get('/_studio/api/config')    # 编辑器用的
+        self.assertEqual(json.loads(body)['mount'], '/_studio/')
+        st, _, body = self.get('/')
+        self.assertEqual(json.loads(body)['path'], '/')
+
+
 if __name__ == '__main__':
     unittest.main()
