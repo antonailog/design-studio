@@ -7,7 +7,10 @@
 - **只能选规范里的值**：样式面板的选项来自站点自己的 CSS 变量（设计 token），改不出规范外的样子。
 - **零依赖**：Python 3.9+ 标准库 + 原生 JS，不用 npm、不用构建，下载就能跑。只在本机 127.0.0.1 上开服务。
 
-现在是**页面模式**（改已经做出来的页面）。以后会并进 forge-design-lab 的**骨架模式**（实现之前，在页面骨架上定比例和 token），两种模式共用同一个本机服务。
+两种模式，共用同一个本机服务：
+
+- **页面模式**（`serve`）：改已经做出来的页面，下面大部分说的是它。
+- **骨架模式**（`lab`）：实现之前，在页面包（骨架 HTML + `tokens.json`）上按真实 token、真实像素定比例和间距，保存直写仓库。原来是 [forge-design-lab](https://github.com/antonailog/forge-skills/tree/main/skills/forge-design-lab) Skill 自带的工作台服务，现在本体在这里，Skill 在 forge 流程里调用它。
 
 ## 三步跑起来
 
@@ -66,9 +69,12 @@ python3 design_studio.py serve design-studio.json --proxy http://localhost:5173
 ## 命令
 
 ```bash
-python3 design_studio.py serve <站点配置.json> [--port N] [--proxy URL]
-python3 design_studio.py check <站点配置.json>      # 只检查配置和文件
+python3 design_studio.py serve <站点配置.json> [--port N] [--proxy URL]   # 页面模式
+python3 design_studio.py check <站点配置.json>                            # 只检查配置和文件
+python3 design_studio.py lab <仓库目录> [--port N] [--status | --stop]      # 骨架模式
 ```
+
+骨架模式：静态根就是仓库根，页面包在 `docs/assets/visuals/<页面>/`，打开它打印的地址就是页面包索引。一个仓库一个常驻服务，状态记在 `.forge/design-lab/server.json`，已经在跑就不重复启动；端口默认 4577，被占就往后找。保存时按节点 id 合并（值、结局、反馈取页面的，结构取磁盘的），写 `tokens.json` 和由它生成的 `.tokens.js`、`.tokens.css`，回执在 `.forge/design-lab/last-save.json` 和 `saves.jsonl`。页面包的生成、校验脚本和七层审查流程在 forge-design-lab Skill 里；站点配置写 `"lab": true` 时，页面模式的服务也同时提供骨架模式的接口。
 
 端口：命令行给了 `--port` 或配置里写了 `port`，就只用这个端口，被占就报错退出。不会悄悄换端口：浏览器里存的草稿和偏好按「地址 + 端口」隔离，换了端口看起来就像全丢了。都没给时从 4580 往后找空闲端口。
 
@@ -95,14 +101,16 @@ python3 tests/regression/run.py --target new \
   --cmd "{python} -I {repo}/design_studio.py serve {site}/99-其他/design-studio.json --port {port}"   # 真实博客的兼容回归（要有那个博客）
 ```
 
-`docs/compat.md` 是从第一个用户（一个个人博客）的旧编辑服务迁过来时逐条核对的兼容清单；`docs/archive/raw/discussions/` 是立项讨论。
+`docs/compat.md` 是从第一个用户（一个个人博客）的旧编辑服务迁过来时逐条核对的兼容清单；骨架模式的兼容回归是 `tests/regression/lab_run.py`（拿用 forge-design-lab 的项目做沙盒，和旧 serve.py 逐条对照）；`docs/archive/raw/discussions/` 是立项讨论。
 
 ## 目录
 
 ```
 design_studio.py      命令行入口
-studio/               本机服务：config（站点配置）、server（静态文件、安全、路由）、page_mode（页面模式接口）、writeback（精确写回）、proxy（代理）
-web/editor/           编辑器前端（原生 JS，界面样式自带）
+studio/               本机服务：config（站点配置）、server（静态文件、安全、路由）、page_mode（页面模式接口）、writeback（精确写回）、proxy（代理）、lab_mode（骨架模式接口）
+studio/lab/           骨架模式的 token 工具：build_tokens（json → js/css 并校验）、adapt_tokens（读项目现有 token）
+web/editor/           页面模式的编辑器前端（原生 JS，界面样式自带）
+web/lab/              骨架模式的前端母本：工作台引擎、零件库页面、页面包模板（forge-design-lab 从这里同步到项目）
 examples/plain-site/  最小示例站
 docs/                 config.md 字段说明、compat.md 兼容清单、立项讨论
 tests/                unit 单元测试、regression 博客兼容回归
