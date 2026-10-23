@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>示例站 · design-studio</title>
+<link rel="stylesheet" href="tokens.css">
+<style>
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: var(--fs-16); line-height: var(--lh-body); }
+  main { max-width: 720px; margin: 0 auto; padding: var(--sp-64) var(--sp-24); }
+  h1 { font-size: var(--fs-40); line-height: var(--lh-tight); margin: 0 0 var(--sp-16); }
+  .lead { color: var(--muted); font-size: var(--fs-20); margin: 0 0 var(--sp-40); }
+  section { margin-top: var(--sp-40); }
+  h2 { font-size: var(--fs-28); margin: 0 0 var(--sp-16); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--sp-16) var(--sp-24); margin-bottom: var(--sp-16); }
+  .card h3 { margin: 0 0 var(--sp-4); font-size: var(--fs-20); }
+  .card p { margin: 0; color: var(--muted); }
+  .tag { display: inline-block; padding: 0 var(--sp-8); border-radius: var(--r-pill); background: var(--accent); color: #fff; font-size: var(--fs-14); }
+</style>
+</head>
+<body>
+<main>
+  <section id="hello">
+    <span class="tag">示例</span>
+    <h1>你好，这里是一个普通的静态网站</h1>
+    <p class="lead">双击这段文字试试：改完点保存，它会直接写回 index.html。</p>
+  </section>
+  <section id="doing">
+    <h2>最近在做</h2>
+    <div id="list"></div>
+  </section>
+</main>
+<script src="data.js"></script>
+<script>
+  document.getElementById('list').innerHTML = window.SITE.doing.map(d =>
+    `<article class="card"><h3>${d.title}</h3><p>${d.line}</p></article>`).join('');
+</script>
+</body>
+</html>

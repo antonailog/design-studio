@@ -1,0 +1,10 @@
+{
+ "_说明": "示例站的站点配置。最少只要 pages；样式面板的选项没列，编辑器会从页面的 :root 变量按前缀自动归组。跑法：python3 ../../design_studio.py serve design-studio.json",
+ "pages": {
+  "首页": {"url": "/index.html", "html": "index.html", "data": "data.js"}
+ },
+ "editor": {
+  "title": "示例站编辑器",
+  "sections": {"hello": "开头", "doing": "最近在做"}
+ }
+}

@@ -1,0 +1,10 @@
+/* 示例站的设计 token：design-studio 的样式面板只给这里的值（站点配置没列名单时，按名字前缀自动归组） */
+:root {
+  --bg: #fbfaf7; --surface: #ffffff; --fg: #1d1d1b; --muted: #6f6c64; --accent: #2f6fde; --line: #e7e3da;
+  --font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --fs-14: 14px; --fs-16: 16px; --fs-20: 20px; --fs-28: 28px; --fs-40: 40px;
+  --sp-4: 4px; --sp-8: 8px; --sp-16: 16px; --sp-24: 24px; --sp-40: 40px; --sp-64: 64px;
+  --r-sm: 8px; --r-md: 16px; --r-pill: 999px;
+  --lh-tight: 1.2; --lh-body: 1.7;
+}
