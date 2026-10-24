@@ -38,7 +38,7 @@
     };
     for (const sh of S.doc.styleSheets) { try { visit(sh.cssRules); } catch (e) { /* 跨域 */ } }
     const all = [...names];
-    const pick = re => all.filter(n => re.test(n));
+    const pick = re => all.filter(n => re.test(n) && !n.slice(2).includes('--'));   // Tailwind 的 --text-xs--line-height 这类附属变量不算
     const probe = S.doc.createElement('i'); probe.style.display = 'none'; S.doc.body.appendChild(probe);
     const isColor = n => { probe.style.color = ''; probe.style.color = `var(${n})`; const v = tok(n); return !!v && /^(#|rgb|hsl|oklch|oklab|lab|lch|color\()/i.test(v); };
     discovered = {
@@ -52,7 +52,13 @@
   const list = key => ST()[key] || discover()[key] || [];
   const colorNames = () => ST().color_names || {};
 
-  const scaleOpts = (names, zero) => (zero ? [{ v: '0', t: '0', label: '0' }] : []).concat(names.map(n => ({ v: tok(n), t: n, label: `${n.replace('--', '')} · ${tok(n).replace(/^clamp\((.*)\)$/, '随屏宽变化')}` })));
+  // 每项是变量名（"--fs-16"）或直接写的值（"28px"、"1.85"，给规范只写在文档里、CSS 没有变量的站点用），也可以写成 [变量名或值, 名字]
+  const scaleOpts = (names, zero) => (zero ? [{ v: '0', t: '0', label: '0' }] : []).concat(names.map(e => {
+    const [n, name] = Array.isArray(e) ? e : [e, ''];
+    const v = n.startsWith('--') ? tok(n) : n;
+    const shown = v.replace(/^clamp\((.*)\)$/, '随屏宽变化');
+    return { v, t: n, label: name ? `${name} · ${shown}` : n.startsWith('--') ? `${n.replace('--', '')} · ${shown}` : shown };
+  }));
   const CONTROLS = () => [
     { prop: 'font-size', label: '字号', opts: scaleOpts(list('sizes')) },
     { prop: 'font-weight', label: '字重', opts: (ST().font_weights || DEFAULT_WEIGHTS).map(([v, l]) => ({ v, t: v, label: l })) },
@@ -309,7 +315,7 @@
         row.appendChild(sws);
       } else {
         const s = document.createElement('select');
-        const hit = pending ? null : c.opts.find(o => o.v === cur || (c.prop === 'font-family' && cs.fontFamily === S.win.getComputedStyle(S.doc.documentElement).getPropertyValue(o.t).trim()));
+        const hit = pending ? null : c.opts.find(o => o.v === cur || (c.prop === 'font-family' && cs.fontFamily === fontOf(o.t)));
         s.innerHTML = `<option value="">${esc(pending ? '原来：' + pending.from : '现在：' + (hit ? hit.label : cur + '（规范外）'))}</option>` +
           c.opts.map(o => `<option value="${esc(o.t)}" ${pending && pending.token === o.t ? 'selected' : ''}>${esc(o.label)}</option>`).join('');
         s.onchange = () => { const o = c.opts.find(x => x.t === s.value); if (o) setStyle(el, d, c, o.v, o.t, cur); else resetStyle(el, d, c); };
@@ -334,6 +340,12 @@
     if (prop === 'line-height') { const lh = parseFloat(cs.lineHeight), fs = parseFloat(cs.fontSize); return isNaN(lh) ? cs.lineHeight : String(Math.round(lh / fs * 100) / 100); }
     const v = cs.getPropertyValue(prop);
     if (prop === 'text-align') return { start: 'left', end: 'right', '-webkit-left': 'left', '-webkit-center': 'center' }[v] || v;
+    return v;
+  }
+  function fontOf(n) {   // 浏览器会改写字体名（BlinkMacSystemFont → system-ui），按算出来的值比，不比变量原文
+    const probe = S.doc.createElement('i'); probe.style.cssText = `display:none;font-family:var(${n})`;
+    S.doc.body.appendChild(probe);
+    const v = S.win.getComputedStyle(probe).fontFamily; probe.remove();
     return v;
   }
   function matchColor(el, prop, n) {

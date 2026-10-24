@@ -112,16 +112,24 @@ last_updated: 2026-10-23
 
 | 字段 | 说明 |
 |---|---|
-| `sizes` | 字号变量名，如 `["--fs-14", "--fs-16"]` |
-| `spaces` | 间距变量名（上下留白、内边距、子元素间距共用） |
-| `radii` | 圆角变量名 |
-| `line_heights` | 行高变量名 |
+| `sizes` | 字号，如 `["--fs-14", "--fs-16"]` |
+| `spaces` | 间距（上下留白、内边距、子元素间距共用） |
+| `radii` | 圆角 |
+| `line_heights` | 行高 |
 | `fonts` | 字体：`[["--font-body", "正文"], ...]` |
 | `font_weights` | 字重：`[["400", "常规 400"], ...]`，默认 300—700 |
 | `text_colors` / `bg_colors` | 文字颜色、底色可选的变量名；底色可以加 `"none"`（透明） |
 | `color_names` | 色块悬停时显示的中文名：`{"--fg": "主文字"}` |
 
-没写 `styles`（或没写某一项）时，编辑器从页面 `:root` 上的 CSS 变量按名字前缀自动归组：`--fs-` / `--font-size-` / `--text-` 是字号，`--sp-` / `--space-` / `--spacing-` / `--gap-` 是间距，`--r-` / `--radius-` / `--rounded-` 是圆角，`--lh-` / `--leading-` 是行高，`--font-*` 是字体，值是颜色的都算颜色。
+`sizes`、`spaces`、`radii`、`line_heights` 每一项可以是：
+
+- 变量名：`"--fs-16"`，值从页面读；
+- 直接写的值：`"28px"`、`"1.85"`，给设计规范只写在文档里、CSS 没有对应变量的站点用；
+- 带名字：`["28px", "H1"]`、`["--space-md", "md"]`，面板里显示成「H1 · 28px」。
+
+修改单里，选变量的记变量名，选直接写的值的记值。
+
+没写 `styles`（或没写某一项）时，编辑器从页面 `:root` 上的 CSS 变量按名字前缀自动归组：`--fs-` / `--font-size-` / `--text-` 是字号，`--sp-` / `--space-` / `--spacing-` / `--gap-` 是间距，`--r-` / `--radius-` / `--rounded-` 是圆角，`--lh-` / `--leading-` 是行高，`--font-*` 是字体，值是颜色的都算颜色。名字里带第二个 `--` 的附属变量（Tailwind 的 `--text-xs--line-height`）不算。
 
 ### editor.ai_prompt
 
