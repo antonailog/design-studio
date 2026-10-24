@@ -141,7 +141,8 @@ def make_handler(cfg, router, proxy=None):
                 port = u.port
             except ValueError:
                 return False
-            return u.hostname in LOCAL_HOSTS and port in (None, self.server.server_address[1])
+            # 页面都从本服务打开，Origin 必须就是本服务：http、本机、同端口（不带端口的 http://localhost 是 80 端口，也拒）
+            return u.scheme == 'http' and u.hostname in LOCAL_HOSTS and port == self.server.server_address[1]
 
         # ---------- GET ----------
         def do_HEAD(self):
@@ -194,9 +195,12 @@ def make_handler(cfg, router, proxy=None):
                 body = json.loads(self.rfile.read(n) or b'{}')
                 if not isinstance(body, dict):
                     raise ValueError('请求体要是 JSON 对象')
+            except ValueError as e:                 # 坏 JSON、不是对象、Content-Length 不是数字：请求的错
+                return self.send_json(400, {'ok': False, 'error': f'请求体不对：{e}'})
+            try:
                 return router.posts[route](self, body)
             except Exception as e:
-                return self.send_json(500, {'error': str(e)})
+                return self.send_json(500, {'ok': False, 'error': str(e)})
 
     return Handler
 

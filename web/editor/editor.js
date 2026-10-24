@@ -38,12 +38,14 @@
     };
     for (const sh of S.doc.styleSheets) { try { visit(sh.cssRules); } catch (e) { /* 跨域 */ } }
     const all = [...names];
-    const pick = re => all.filter(n => re.test(n) && !n.slice(2).includes('--'));   // Tailwind 的 --text-xs--line-height 这类附属变量不算
+    // Tailwind 的 --text-xs--line-height 这类附属变量不算（有同名基础变量 --text-xs 才排除，--fs--1 这种负数档位保留）
+    const pick = re => all.filter(n => re.test(n) && !all.some(m => m !== n && n.startsWith(m + '--')));
     const probe = S.doc.createElement('i'); probe.style.display = 'none'; S.doc.body.appendChild(probe);
     const isColor = n => { probe.style.color = ''; probe.style.color = `var(${n})`; const v = tok(n); return !!v && /^(#|rgb|hsl|oklch|oklab|lab|lch|color\()/i.test(v); };
     discovered = {
       sizes: pick(/^--(fs|font-size|text)-/), spaces: pick(/^--(sp|space|spacing|gap)-/), radii: pick(/^--(r|radius|rounded)(-|$)/),
-      line_heights: pick(/^--(lh|leading|line-height)-/), fonts: pick(/^--font-(?!size|weight)/).map(n => [n, n.replace('--font-', '字体 ')]),
+      line_heights: pick(/^--(lh|leading|line-height)-/),
+      fonts: pick(/^--font-(?!size|weight)/).filter(n => fontOf(n)).map(n => [n, n.replace('--font-', '字体 ')]),   // 值不是字体的（--font-lineheight-1: 1.25）不算
       colors: all.filter(isColor),
     };
     probe.remove();
@@ -53,12 +55,15 @@
   const colorNames = () => ST().color_names || {};
 
   // 每项是变量名（"--fs-16"）或直接写的值（"28px"、"1.85"，给规范只写在文档里、CSS 没有变量的站点用），也可以写成 [变量名或值, 名字]
-  const scaleOpts = (names, zero) => (zero ? [{ v: '0', t: '0', label: '0' }] : []).concat(names.map(e => {
-    const [n, name] = Array.isArray(e) ? e : [e, ''];
-    const v = n.startsWith('--') ? tok(n) : n;
-    const shown = v.replace(/^clamp\((.*)\)$/, '随屏宽变化');
-    return { v, t: n, label: name ? `${name} · ${shown}` : n.startsWith('--') ? `${n.replace('--', '')} · ${shown}` : shown };
-  }));
+  const scaleOpts = (names, zero) => {
+    const seen = new Set();
+    return (zero ? [{ v: '0', t: '0', label: '0', name: '' }] : []).concat(names.map(e => {
+      const n = String(Array.isArray(e) ? e[0] : e), name = Array.isArray(e) && e[1] != null ? String(e[1]) : '';   // 配置里写成数字（1.85）也行
+      const v = n.startsWith('--') ? tok(n) : n;
+      const shown = v.replace(/^clamp\((.*)\)$/, '随屏宽变化');
+      return { v, t: n, name, label: name ? `${name} · ${shown}` : n.startsWith('--') ? `${n.replace('--', '')} · ${shown}` : shown };
+    })).filter(o => !seen.has(o.t) && seen.add(o.t));   // 同一个值只留第一项，下拉框里不重复
+  };
   const CONTROLS = () => [
     { prop: 'font-size', label: '字号', opts: scaleOpts(list('sizes')) },
     { prop: 'font-weight', label: '字重', opts: (ST().font_weights || DEFAULT_WEIGHTS).map(([v, l]) => ({ v, t: v, label: l })) },
@@ -315,10 +320,10 @@
         row.appendChild(sws);
       } else {
         const s = document.createElement('select');
-        const hit = pending ? null : c.opts.find(o => o.v === cur || (c.prop === 'font-family' && cs.fontFamily === fontOf(o.t)));
+        const hit = pending ? null : c.opts.find(o => c.prop === 'font-family' ? cs.fontFamily === fontOf(o.t) : sameValue(el, c.prop, o.v, cur));
         s.innerHTML = `<option value="">${esc(pending ? '原来：' + pending.from : '现在：' + (hit ? hit.label : cur + '（规范外）'))}</option>` +
           c.opts.map(o => `<option value="${esc(o.t)}" ${pending && pending.token === o.t ? 'selected' : ''}>${esc(o.label)}</option>`).join('');
-        s.onchange = () => { const o = c.opts.find(x => x.t === s.value); if (o) setStyle(el, d, c, o.v, o.t, cur); else resetStyle(el, d, c); };
+        s.onchange = () => { const o = c.opts.find(x => x.t === s.value); if (o) setStyle(el, d, c, o.v, o.t, cur, o.name); else resetStyle(el, d, c); };
         row.appendChild(s);
       }
       const r = document.createElement('button');
@@ -342,11 +347,38 @@
     if (prop === 'text-align') return { start: 'left', end: 'right', '-webkit-left': 'left', '-webkit-center': 'center' }[v] || v;
     return v;
   }
+  // 规范里的值和元素现在的值都按浏览器算出来的形式比：1.75rem 和 28px 算同一个；行高按比例比，差不到 0.006 算同一个
+  function sameValue(el, prop, v, cur) {
+    if (v === cur) return true;
+    if (!v) return false;
+    const cs = S.win.getComputedStyle(el);
+    if (prop === 'line-height') {
+      const lh = parseFloat(cs.lineHeight), fs = parseFloat(cs.fontSize);
+      if (isNaN(lh)) return false;
+      if (/^\d*\.?\d+$/.test(v)) return Math.abs(lh / fs - parseFloat(v)) < 0.006;
+      return Math.abs(lh - parseFloat(computedAs(el, prop, v, 'lineHeight'))) < 0.5;
+    }
+    const probe = probeIn(el, prop, v);
+    const r = currentValue(probe, prop); probe.remove();
+    return r === cur;
+  }
+  function probeIn(el, prop, v) {   // 放在元素旁边（em、% 按同一个父元素算），调用方读完计算值就拿掉
+    const probe = S.doc.createElement('i'); probe.style.display = 'none'; probe.style.setProperty(prop, v);
+    (el.parentElement || S.doc.body).appendChild(probe);
+    return probe;
+  }
+  function computedAs(el, prop, v, key) {
+    const probe = probeIn(el, prop, v);
+    const r = S.win.getComputedStyle(probe)[key]; probe.remove();
+    return r;
+  }
   function fontOf(n) {   // 浏览器会改写字体名（BlinkMacSystemFont → system-ui），按算出来的值比，不比变量原文
-    const probe = S.doc.createElement('i'); probe.style.cssText = `display:none;font-family:var(${n})`;
-    S.doc.body.appendChild(probe);
-    const v = S.win.getComputedStyle(probe).fontFamily; probe.remove();
-    return v;
+    // 外面套一层占位字体：变量不存在或值不是字体时 var() 失效、继承到占位字体，就当没有，不把正文字体错算成它
+    const wrap = S.doc.createElement('i'); wrap.style.cssText = 'display:none;font-family:__ds_none__';
+    const probe = S.doc.createElement('i'); probe.style.fontFamily = `var(${n})`;
+    wrap.appendChild(probe); S.doc.body.appendChild(wrap);
+    const v = S.win.getComputedStyle(probe).fontFamily; wrap.remove();
+    return v === '__ds_none__' ? '' : v;
   }
   function matchColor(el, prop, n) {
     if (n === 'none') return S.win.getComputedStyle(el).getPropertyValue(prop) === 'rgba(0, 0, 0, 0)';
@@ -355,11 +387,12 @@
     const v = S.win.getComputedStyle(probe).color; probe.remove();
     return S.win.getComputedStyle(el).getPropertyValue(prop) === v;
   }
-  function setStyle(el, d, c, value, token, from) {
+  function setStyle(el, d, c, value, token, from, name) {
     const key = `style|${d.selector}|${c.prop}`;
     const prev = S.items.get(key);
     el.style.setProperty(c.prop, value, 'important');
-    S.items.set(key, { type: '样式', key, where: pick(d), prop: c.prop, label: c.label, from: prev ? prev.from : from, to: token.startsWith('--') ? `${token}（${tok(token)}）` : value, token, css: { selector: d.selector, prop: c.prop, value } });
+    const shown = token.startsWith('--') ? `${token}（${tok(token)}）` : value;
+    S.items.set(key, { type: '样式', key, where: pick(d), prop: c.prop, label: c.label, from: prev ? prev.from : from, to: name ? `${name} · ${shown}` : shown, token, css: { selector: d.selector, prop: c.prop, value } });
     changed(); renderControls(el, d);
   }
   function resetStyle(el, d, c) {
