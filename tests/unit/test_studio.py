@@ -200,6 +200,37 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(cfg.mount, '/编辑器/')
         self.assertEqual(cfg.port, 4580)
 
+    def test_scale_defaults(self):
+        cfg = Config(self.write({'static_root': 'site', 'pages': {'首页': {'url': '/index.html'}}}))
+        sc = cfg.editor_public()['scale']
+        self.assertEqual(sc['pages'], [['首页', '/index.html']])
+        self.assertEqual((sc['keep'], sc['keep_from'], sc['lock'], sc['presets'], sc['feedback']), ('', 34, [], [], '字号收敛'))
+
+    def test_scale_full(self):
+        cfg = Config(self.write({'static_root': 'site', 'pages': {'首页': {'url': '/index.html'}}, 'scale': {
+            'pages': {'文章': '/posts/a/', '首页': '/重复的不加'}, 'keep': ['.h1', '.h2 *'], 'keep_from': 40,
+            'lock': [{'selector': '.prose p', 'min': 16, 'max': 17.5, 'why': '正文'}],
+            'presets': [{'name': 'A', 'recommend': True, 'steps': [[12, '小字'], 14, [16]], 'upto': [[14.5, 14], [12.5, 12]]}],
+            'feedback': '字号'}}))
+        sc = cfg.scale
+        self.assertEqual(sc['pages'], [['首页', '/index.html'], ['文章', '/posts/a/']])
+        self.assertEqual(sc['keep'], '.h1, .h2 *')
+        self.assertEqual(sc['presets'][0]['steps'], [[12, '小字'], [14, ''], [16, '']])
+        self.assertEqual(sc['presets'][0]['upto'], [[12.5, 12], [14.5, 14]])   # 按上限排好序
+        self.assertTrue(sc['presets'][0]['recommend'])
+        ok, lines = cfg.check()
+        self.assertTrue(any('另审 1 个页面' in l for l in lines))
+
+    def test_scale_errors(self):
+        base = {'static_root': 'site', 'pages': {'p': {'url': '/index.html'}}}
+        for bad in ([], {'pages': {'x': 'no-slash'}}, {'keep': 3}, {'keep_from': 0}, {'lock': [{'min': 1}]},
+                    {'lock': [{'selector': '.a', 'min': 5, 'max': 1}]}, {'presets': [{'name': '', 'steps': [12]}]},
+                    {'presets': [{'name': 'A', 'steps': []}]}, {'presets': [{'name': 'A', 'steps': [12, 12]}]},
+                    {'presets': [{'name': 'A', 'steps': ['12px']}]}, {'presets': [{'name': 'A', 'steps': [12], 'upto': [[13, 14]]}]},
+                    {'feedback': '../x'}):
+            with self.assertRaises(ConfigError, msg=str(bad)):
+                Config(self.write({**base, 'scale': bad}))
+
     def test_errors(self):
         for bad in ({}, {'pages': {}}, {'pages': {'p': {'url': 'index.html'}}}, {'port': 'x', 'pages': {'p': {'url': '/a'}}},
                     {'editor_mount': '/', 'pages': {'p': {'url': '/a'}}}, {'static_root': '没有', 'pages': {'p': {'url': '/a'}}}):
@@ -277,6 +308,13 @@ class TestServer(unittest.TestCase):
         self.assertEqual(st, 200)
         st, body = self.call('GET', '/api/config')
         self.assertEqual(json.loads(body)['mount'], '/_studio/')
+        self.assertEqual(json.loads(body)['scale']['pages'], [['首页', '/index.html']])
+        st, body = self.call('GET', '/_studio/scale.html')
+        self.assertEqual(st, 200)
+        self.assertIn(b'scale.js', body)
+        self.assertEqual(self.call('GET', '/_studio/scale.js')[0], 200)
+        st, body = self.call('GET', '/_studio/')
+        self.assertIn(b'href="scale.html"', body)          # 编辑器顶栏有入口
 
     def test_security(self):
         self.assertEqual(self.call('GET', '/api/pages', headers={'Host': 'evil.example'})[0], 403)

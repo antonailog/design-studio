@@ -57,6 +57,77 @@ class Page:
         return out
 
 
+def _num(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+FEEDBACK_NAME = re.compile(r'^[\w一-鿿-]{1,40}$')   # 和 page_mode.FB_NAME 一致：反馈文件名
+
+
+def _scale(raw, pages):
+    """字号收敛页（<挂载路径>scale.html）的配置：审哪些页面、哪些字不动、哪些锁定、有哪几套方案。不写也能用。"""
+    if raw is None:
+        raw = {}
+    if not isinstance(raw, dict):
+        raise ConfigError('scale 应该是对象，见 docs/config.md「scale：字号收敛」')
+    out = {'pages': [[name, p.url] for name, p in pages.items()]}
+    extra = raw.get('pages') or {}
+    if not isinstance(extra, dict) or not all(isinstance(u, str) and u.startswith('/') for u in extra.values()):
+        raise ConfigError('scale.pages 要写成 {"页面名": "/站内地址"}，地址以 / 开头（可以带 #）')
+    out['pages'] += [[name, url] for name, url in extra.items() if name not in pages]
+    keep = raw.get('keep') or ''
+    if isinstance(keep, list):
+        keep = ', '.join(str(k) for k in keep)
+    if not isinstance(keep, str):
+        raise ConfigError('scale.keep 要写 CSS 选择器（字符串或字符串数组）')
+    out['keep'] = keep
+    keep_from = raw.get('keep_from', 34)
+    if not _num(keep_from) or keep_from <= 0:
+        raise ConfigError(f'scale.keep_from 要写正数（像素），现在是 {keep_from!r}')
+    out['keep_from'] = keep_from
+    locks = raw.get('lock') or []
+    if not isinstance(locks, list):
+        raise ConfigError('scale.lock 要写成 [{"selector": "...", "min": 16, "max": 17.5, "why": "..."}]')
+    out['lock'] = []
+    for i, l in enumerate(locks):
+        if not isinstance(l, dict) or not isinstance(l.get('selector'), str) or not l['selector'].strip():
+            raise ConfigError(f'scale.lock[{i}] 缺 selector')
+        lo, hi = l.get('min', 0), l.get('max', 9999)
+        if not (_num(lo) and _num(hi) and lo <= hi):
+            raise ConfigError(f'scale.lock[{i}] 的 min / max 要写数字，且 min ≤ max')
+        out['lock'].append({'selector': l['selector'], 'min': lo, 'max': hi, 'why': str(l.get('why') or '')})
+    presets = raw.get('presets') or []
+    if not isinstance(presets, list):
+        raise ConfigError('scale.presets 要写成数组')
+    out['presets'] = []
+    for i, p in enumerate(presets):
+        where = f'scale.presets[{i}]'
+        if not isinstance(p, dict) or not isinstance(p.get('name'), str) or not 0 < len(p['name']) <= 12:
+            raise ConfigError(f'{where}.name 要写 1—12 个字的方案名')
+        steps = p.get('steps')
+        if not isinstance(steps, list) or not steps:
+            raise ConfigError(f'{where}.steps 至少要一档：[[12, "说明"], 14, ...]')
+        norm = []
+        for s in steps:
+            px, role = (s[0], s[1] if len(s) > 1 else '') if isinstance(s, list) and s else (s, '')
+            if not _num(px) or not 6 <= px <= 200:
+                raise ConfigError(f'{where}.steps 里的 {s!r} 不对：每档写像素数（6—200），可带说明 [12, "标签"]')
+            norm.append([px, str(role)])
+        if len({px for px, _ in norm}) != len(norm):
+            raise ConfigError(f'{where}.steps 有重复的档位')
+        pxs = {px for px, _ in norm}
+        upto = p.get('upto') or []
+        if not isinstance(upto, list) or not all(isinstance(u, list) and len(u) == 2 and _num(u[0]) and u[1] in pxs for u in upto):
+            raise ConfigError(f'{where}.upto 要写成 [[原字号上限, 并到哪一档], ...]，并到的档位必须在 steps 里')
+        out['presets'].append({'name': p['name'], 'note': str(p.get('note') or ''), 'recommend': bool(p.get('recommend')),
+                               'steps': norm, 'upto': sorted(upto)})
+    fb = raw.get('feedback', '字号收敛')
+    if not isinstance(fb, str) or not FEEDBACK_NAME.match(fb):
+        raise ConfigError('scale.feedback 是保存用的名字：1—40 个汉字、字母、数字、下划线或横线')
+    out['feedback'] = fb
+    return out
+
+
 class Config:
     def __init__(self, path):
         self.file = os.path.abspath(path)
@@ -122,6 +193,7 @@ class Config:
         self.editor = raw.get('editor') or {}
         if not isinstance(self.editor, dict):
             raise ConfigError('editor 应该是对象')
+        self.scale = _scale(raw.get('scale'), self.pages)
 
     # ---------- 路径 ----------
     def path(self, rel):
@@ -138,6 +210,7 @@ class Config:
         e.setdefault('title', 'design-studio')
         e['mount'] = self.mount
         e['allowed_tags'] = self.allowed_tags
+        e['scale'] = self.scale
         return e
 
     def check(self):
@@ -153,4 +226,11 @@ class Config:
                     ok &= there or label == '说明文档'
                     lines.append(f'{name} {label}：{"✓" if there else "✗"} {rel}')
             lines.append(f'{name} 修改单：{p.rel_sheet}{"（已有）" if os.path.isfile(p.sheet) else "（第一次保存时建）"}')
+        extra = self.scale['pages'][len(self.pages):]
+        if extra:
+            lines.append(f'字号收敛页：{self.mount}scale.html，另审 {len(extra)} 个页面，{len(self.scale["presets"])} 套方案')
+            for name, url in extra:
+                rel = url.split('#')[0].split('?')[0]
+                there = os.path.isfile(os.path.join(self.static_root, rel.lstrip('/') + ('index.html' if rel.endswith('/') else '')))
+                lines.append(f'  {name}：{"✓" if there else "?"} {url}')   # 代理站、动态路由的地址在本地找不到文件，只提示不算错
         return ok, lines

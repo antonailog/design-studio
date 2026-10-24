@@ -1,0 +1,467 @@
+{
+ "target": "new",
+ "command": "/opt/homebrew/opt/python@3.14/bin/python3.14 -I ~/claudecode_workspace/工具/design-studio/design_studio.py serve <沙盒>/个人博客/99-其他/design-studio.json --port 62082",
+ "started": "2026-10-24T06:59:07",
+ "finished": "2026-10-24T06:59:10",
+ "seconds": 2.9,
+ "python": "3.14.2",
+ "blog": "~/claudecode_workspace/内容/个人博客",
+ "sandbox": {
+  "files": 1947,
+  "bytes": 40672640,
+  "placeholders": 1124,
+  "skipped_links": 0,
+  "skipped_dirs": 6,
+  "kept": false
+ },
+ "ui": "playwright chromium",
+ "summary": {
+  "cases": 28,
+  "pass": 27,
+  "fail": 0,
+  "known": 0,
+  "skip": 1
+ },
+ "integrity": {
+  "guarded": [
+   "4-页面/首页/首页-v3/data/site.js",
+   "0-记录/修改单"
+  ],
+  "files": 7,
+  "unchanged": true,
+  "changed": []
+ },
+ "setup_error": null,
+ "cases": [
+  {
+   "id": "R01",
+   "name": "根地址 302 跳首页，Location 编码正确",
+   "status": "pass",
+   "evidence": [
+    "✓ 状态 302（实际：302）",
+    "✓ Location 只含 ASCII（中文按 UTF-8 百分号编码）（实际：/%E9%A6%96%E9%A1%B5/%E9%A6%96%E9%A1%B5-v3/v3-7.html）",
+    "✓ 解码后等于 /api/pages 里首页的 url（/首页/首页-v3/v3-7.html）（实际：/首页/首页-v3/v3-7.html）",
+    "✓ 跟过去是 200 的 HTML（实际：200 text/html; charset=utf-8）"
+   ]
+  },
+  {
+   "id": "R02",
+   "name": "/编辑器/ 返回编辑器页面",
+   "status": "pass",
+   "evidence": [
+    "✓ /编辑器/ → 200（实际：200）",
+    "✓ Content-Type 是 HTML（实际：text/html; charset=utf-8）",
+    "✓ 是编辑器页面（含 editor.js 和 #frame）",
+    "✓ 引用了 editor.js 和 editor.css（实际：[\"/编辑器/editor.css\", \"/编辑器/scale.html\", \"/编辑器/editor.js\"]）",
+    "✓ 不再引用被编辑站点的样式（编辑器界面自带）（实际：[\"/编辑器/editor.css\", \"/编辑器/scale.html\", \"/编辑器/editor.js\"]）",
+    "✓ /编辑器/editor.css → 200（编辑器页里的相对引用要能取到）（实际：200）",
+    "✓ /编辑器/scale.html → 200（编辑器页里的相对引用要能取到）（实际：200）",
+    "✓ /编辑器/editor.js → 200（编辑器页里的相对引用要能取到）（实际：200）"
+   ]
+  },
+  {
+   "id": "R03",
+   "name": "静态文件根是 4-页面/，目录地址补 index.html，响应不缓存",
+   "status": "pass",
+   "evidence": [
+    "✓ /首页/首页-v3/v3-7.html → 200 且内容和沙盒文件一致（实际：200）",
+    "✓ /首页/首页-v3/v3-7.html 的 Content-Type 含 text/html（实际：text/html; charset=utf-8）",
+    "✓ /首页/调整单/feedback.js → 200 且内容和沙盒文件一致（实际：200）",
+    "✓ /首页/调整单/feedback.js 的 Content-Type 含 javascript（实际：text/javascript; charset=utf-8）",
+    "✓ /posts/_样张/文章页调整台.html → 200 且内容和沙盒文件一致（实际：200）",
+    "✓ /posts/_样张/文章页调整台.html 的 Content-Type 含 text/html（实际：text/html; charset=utf-8）",
+    "✓ /首页/首页-v3/data/site.js → 200 且内容和沙盒文件一致（实际：200）",
+    "✓ /首页/首页-v3/data/site.js 的 Content-Type 含 javascript（实际：text/javascript; charset=utf-8）",
+    "✓ site.js 带 Cache-Control: no-store / no-cache（保存后刷新 iframe 要拿到新值）（实际：no-store）",
+    "✓ /posts/2026-02-16/ → 目录补 index.html，200（实际：200）",
+    "✓ 不存在的文件 → 404（实际：404）"
+   ]
+  },
+  {
+   "id": "R04",
+   "name": "/api/pages 列出首页及其 url",
+   "status": "pass",
+   "evidence": [
+    "✓ 200（实际：200）",
+    "✓ 返回对象里有「首页」（实际：[\"首页\"]）",
+    "✓ 首页 url 是站内绝对路径（实际：/首页/首页-v3/v3-7.html）",
+    "✓ 首页 url 指向现行首页 4-页面/首页/首页-v3/v3-7.html（实际：/首页/首页-v3/v3-7.html）",
+    "✓ url 能打开（200）（实际：200）",
+    "· 旧服务还回了：{\"sheet\": \"0-记录/修改单/首页.json\", \"guide\": \"4-页面/首页/修改指南.md\", \"sheet_abs\": \"<沙盒>/个人博客/0-记录/修改单/首页.json\", \"guide_abs\": \"<沙盒>/个人博客/4-页面/首页/修改指南.md\", \"data\": \"4-页面/首页/首页-v3/data/site.js\", \"html\": \"4-页面/首页/首页-v3/v3-7.html\"}"
+   ]
+  },
+  {
+   "id": "R05",
+   "name": "/api/sheet?page=首页 返回修改单 items",
+   "status": "pass",
+   "evidence": [
+    "✓ 200（实际：200）",
+    "✓ items 是数组（实际：list）",
+    "✓ items 和修改单文件一致（33 条）（实际：33）",
+    "✓ 外层字段 page 原样返回（editor.js 用 file 显示修改单位置）（实际：首页）",
+    "✓ 外层字段 file 原样返回（editor.js 用 file 显示修改单位置）（实际：4-页面/首页/首页-v3/v3-4b-1.html）",
+    "✓ 外层字段 data 原样返回（editor.js 用 file 显示修改单位置）（实际：4-页面/首页/首页-v3/data/site.js）",
+    "✓ 外层字段 guide 原样返回（editor.js 用 file 显示修改单位置）（实际：4-页面/首页/修改指南.md）",
+    "✓ 外层字段 note 原样返回（editor.js 用 file 显示修改单位置）（实际：编辑器保存的修改单。status：已写入 / 已写入，待 AI 跟进 / 待 AI / AI 已处理 / 不改 / 没写入。AI 处理后改 status 并写 reply；要用户挑选或确认的记成「待你确认」，挑选单在 4-页面/首页/调整单/。）",
+    "· 不带 page 参数：200（旧服务默认按「首页」返回，editor.js 总会带 page）"
+   ]
+  },
+  {
+   "id": "R06",
+   "name": "保存「文字」：唯一原句 → 已写入，site.js 对应字段变新值，其他字段语义不变",
+   "status": "pass",
+   "evidence": [
+    "· 挑中的原句：stats.2.label = 「个小工具」（site.js 里能用的唯一原句共 77 句）",
+    "✓ 200（实际：200 {\"ok\": true, \"saved\": [{\"id\": \"20261024-001\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"作品\", \"label\": \"作品 · 回归测试\", \"n）",
+    "✓ ok = true（实际：true）",
+    "✓ 回执 sheet = 0-记录/修改单/首页.json（实际：0-记录/修改单/首页.json）",
+    "✓ warnings 为空（实际：[]）",
+    "✓ 条目类型 = 文字（实际：文字）",
+    "✓ 状态 = 已写入（实际：已写入）",
+    "✓ id 形如 YYYYMMDD-NNN（实际：20261024-001）",
+    "✓ time 形如 YYYY-MM-DD HH:MM（实际：2026-10-24 06:59）",
+    "✓ 修改单文件里有同一条，内容和接口回的一致（实际：{\"id\": \"20261024-001\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"作品\", \"label\": \"作品 · 回归测试\", \"num\": null, \"selector\": \"#ds-regression-only\", \"classes\": \"\", \"tag\": \"p\"}, \"old\": \"个小工具\", \"new\": \"个小工具（回归改）\", \"field\": \"stats.2.label\", \"value\": \"个小工具（回归改）\", \"status\": \"已写入\"}）",
+    "✓ field = stats.2.label（实际：stats.2.label）",
+    "✓ value / old / new 记对了（实际：{\"old\": \"个小工具\", \"new\": \"个小工具（回归改）\", \"value\": \"个小工具（回归改）\"}）",
+    "✓ site.js 解析后该字段 = 新值（实际：个小工具（回归改））",
+    "✓ 把该字段换回原值后，整份数据和写入前完全相同（其他字段语义不变）",
+    "✓ 文件头 window.SITE = 和结尾 ; 保留（实际：[\"window.SITE =\", \";\"]）"
+   ]
+  },
+  {
+   "id": "R07",
+   "name": "格式检查：写回后 site.js 除被改字段外逐字节不变",
+   "status": "pass",
+   "evidence": [
+    "· 写入前 45731 字节 / 写入后 45746 字节；按行比较有 2 行增删（精确写回应该只有 2 行：被改字段那一行的一删一增）",
+    "✓ 只有被改字段的那段字符变了，其余逐字节相同（实际：2 行增删）"
+   ]
+  },
+  {
+   "id": "R08",
+   "name": "保存「文字」：找不到原句 → 待 AI 进修改单，site.js 不动",
+   "status": "pass",
+   "evidence": [
+    "✓ 200 且 ok = true（实际：200 {\"ok\": true, \"saved\": [{\"id\": \"20261024-002\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"首屏\", \"label\": \"首屏 · 回归测试\", \"n）",
+    "✓ 条目类型 = 文字（实际：文字）",
+    "✓ 状态 = 待 AI（实际：待 AI）",
+    "✓ id 形如 YYYYMMDD-NNN（实际：20261024-002）",
+    "✓ time 形如 YYYY-MM-DD HH:MM（实际：2026-10-24 06:59）",
+    "✓ 修改单文件里有同一条，内容和接口回的一致（实际：{\"id\": \"20261024-002\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"首屏\", \"label\": \"首屏 · 回归测试\", \"num\": null, \"selector\": \"#ds-regression-only\", \"classes\": \"\", \"tag\": \"p\"}, \"old\": \"回归测试：数据里不存在的一句话\", \"new\": \"改成别的\", \"status\": \"待 AI\", \"note\": \"数据里找不到原句，可能写死在页面模板里\"}）",
+    "✓ note 写了原因（实际：数据里找不到原句，可能写死在页面模板里）",
+    "✓ 没有 field（没写进数据）",
+    "✓ old / new 记对了",
+    "✓ site.js 一个字节没变"
+   ]
+  },
+  {
+   "id": "R09",
+   "name": "保存「样式」→ 待 AI，字段原样记录，site.js 不动",
+   "status": "pass",
+   "evidence": [
+    "✓ 200 且 ok = true（实际：200 {\"ok\": true, \"saved\": [{\"id\": \"20261024-003\", \"time\": \"2026-10-24 06:59\", \"type\": \"样式\", \"where\": {\"section\": \"首屏\", \"label\": \"首屏 · 回归测试 · �）",
+    "✓ 条目类型 = 样式（实际：样式）",
+    "✓ 状态 = 待 AI（实际：待 AI）",
+    "✓ id 形如 YYYYMMDD-NNN（实际：20261024-003）",
+    "✓ time 形如 YYYY-MM-DD HH:MM（实际：2026-10-24 06:59）",
+    "✓ 修改单文件里有同一条，内容和接口回的一致（实际：{\"id\": \"20261024-003\", \"time\": \"2026-10-24 06:59\", \"type\": \"样式\", \"where\": {\"section\": \"首屏\", \"label\": \"首屏 · 回归测试 · 样式\", \"num\": null, \"selector\": \"#ds-regression-only\", \"classes\": \"\", \"tag\": \"p\"}, \"prop\": \"font-size\", \"label\": \"字号\", \"old\": \"16px\", \"new\": \"--fs-18（18px）\", \"token\": \"--fs-18\", \"css\": {\"s…）",
+    "✓ prop / label / old(=from) / new(=to) / token / css / where 都按请求记下（实际：{\"prop\": \"font-size\", \"label\": \"字号\", \"old\": \"16px\", \"new\": \"--fs-18（18px）\", \"token\": \"--fs-18\", \"css\": {\"selector\": \"#ds-regression-only\", \"prop\": \"font-size\", \"value\": \"var(--fs-18)\"}, \"where\": {\"section\": \"首屏\", \"label\": \"首屏 · 回归测试 · 样式\", \"num\": null, \"selector\": \"#ds-regression-only\", \"classes\": \"…）",
+    "✓ site.js 一个字节没变"
+   ]
+  },
+  {
+   "id": "R10",
+   "name": "保存「意见」→ 待 AI，site.js 不动",
+   "status": "pass",
+   "evidence": [
+    "✓ 200 且 ok = true（实际：200 {\"ok\": true, \"saved\": [{\"id\": \"20261024-004\", \"time\": \"2026-10-24 06:59\", \"type\": \"意见\", \"where\": {\"section\": \"作品\", \"label\": \"作品 · 回归测试 · �）",
+    "✓ 条目类型 = 意见（实际：意见）",
+    "✓ 状态 = 待 AI（实际：待 AI）",
+    "✓ id 形如 YYYYMMDD-NNN（实际：20261024-004）",
+    "✓ time 形如 YYYY-MM-DD HH:MM（实际：2026-10-24 06:59）",
+    "✓ 修改单文件里有同一条，内容和接口回的一致（实际：{\"id\": \"20261024-004\", \"time\": \"2026-10-24 06:59\", \"type\": \"意见\", \"where\": {\"section\": \"作品\", \"label\": \"作品 · 回归测试 · 意见\", \"num\": null, \"selector\": \"#works\", \"classes\": \"\", \"tag\": \"section\"}, \"text\": \"回归测试：这里想和上面拉开一点\", \"status\": \"待 AI\"}）",
+    "✓ text 去掉首尾空白后记下（实际：回归测试：这里想和上面拉开一点）",
+    "✓ where 原样记下（实际：{\"section\": \"作品\", \"label\": \"作品 · 回归测试 · 意见\", \"num\": null, \"selector\": \"#works\", \"classes\": \"\", \"tag\": \"section\"}）",
+    "✓ site.js 一个字节没变"
+   ]
+  },
+  {
+   "id": "R11",
+   "name": "脱敏：新文字带手机号 → 没写入，site.js 回滚",
+   "status": "pass",
+   "evidence": [
+    "· 挑中的原句：stats.3.label = 「次 GitHub 贡献 · 过去一年」，新文字带手机号",
+    "✓ 200 且 ok = true（撤回不算接口失败）（实际：200 {\"ok\": true, \"saved\": [{\"id\": \"20261024-005\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"作品\", \"label\": \"作品 · 回归测试\", \"n）",
+    "✓ 条目类型 = 文字（实际：文字）",
+    "✓ 状态 = 没写入（实际：没写入）",
+    "✓ id 形如 YYYYMMDD-NNN（实际：20261024-005）",
+    "✓ time 形如 YYYY-MM-DD HH:MM（实际：2026-10-24 06:59）",
+    "✓ 修改单文件里有同一条，内容和接口回的一致（实际：{\"id\": \"20261024-005\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"作品\", \"label\": \"作品 · 回归测试\", \"num\": null, \"selector\": \"#ds-regression-only\", \"classes\": \"\", \"tag\": \"p\"}, \"old\": \"次 GitHub 贡献 · 过去一年\", \"new\": \"<测试手机号> 次 GitHub 贡献 · 过去一年\", \"status\": \"没写入\", \"note\": \"脱敏扫描命中，已撤回：/var/fo…）",
+    "✓ note 说明是脱敏扫描命中、已撤回（实际：脱敏扫描命中，已撤回：<沙盒>/个人博客/4-页面/首页/首页-v3/data/site.js:102  手机号  <测试手机号>）",
+    "✓ warnings 非空（编辑器会弹出来）（实际：[\"脱敏扫描命中，文字改动已撤回：<沙盒>/个人博客/4-页面/首页/首页-v3/data/site.js:102  手机号  <测试手机号>\"]）",
+    "✓ site.js 回滚到保存前，一个字节不差"
+   ]
+  },
+  {
+   "id": "R12",
+   "name": "脱敏：新文字带 IP → 没写入，site.js 回滚",
+   "status": "pass",
+   "evidence": [
+    "· 挑中的原句：projects.0.stack.1 = 「FastAPI」，新文字带 IP",
+    "✓ 200 且 ok = true（撤回不算接口失败）（实际：200 {\"ok\": true, \"saved\": [{\"id\": \"20261024-006\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"项目\", \"label\": \"项目 · 回归测试\", \"n）",
+    "✓ 条目类型 = 文字（实际：文字）",
+    "✓ 状态 = 没写入（实际：没写入）",
+    "✓ id 形如 YYYYMMDD-NNN（实际：20261024-006）",
+    "✓ time 形如 YYYY-MM-DD HH:MM（实际：2026-10-24 06:59）",
+    "✓ 修改单文件里有同一条，内容和接口回的一致（实际：{\"id\": \"20261024-006\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"项目\", \"label\": \"项目 · 回归测试\", \"num\": null, \"selector\": \"#ds-regression-only\", \"classes\": \"\", \"tag\": \"p\"}, \"old\": \"FastAPI\", \"new\": \"<测试IP> FastAPI\", \"status\": \"没写入\", \"note\": \"脱敏扫描命中，已撤回：/var/folders/_k/dtckbnf53p1fsx…）",
+    "✓ note 说明是脱敏扫描命中、已撤回（实际：脱敏扫描命中，已撤回：<沙盒>/个人博客/4-页面/首页/首页-v3/data/site.js:145  IP 地址  <测试IP>）",
+    "✓ warnings 非空（编辑器会弹出来）（实际：[\"脱敏扫描命中，文字改动已撤回：<沙盒>/个人博客/4-页面/首页/首页-v3/data/site.js:145  IP 地址  <测试IP>\"]）",
+    "✓ site.js 回滚到保存前，一个字节不差"
+   ]
+  },
+  {
+   "id": "R13",
+   "name": "一次保存多条（编辑器的真实用法）：文字写入 + 样式 + 意见，顺序和 id 连号",
+   "status": "pass",
+   "evidence": [
+    "✓ 200 且 ok = true（实际：200 {\"ok\": true, \"saved\": [{\"id\": \"20261024-007\", \"time\": \"2026-10-24 06:59\", \"type\": \"文字\", \"where\": {\"section\": \"项目\", \"label\": \"项目 · 回归测试\", \"n）",
+    "✓ 回执顺序和请求一致（实际：[\"文字\", \"样式\", \"意见\"]）",
+    "✓ 状态：已写入 / 待 AI / 待 AI（实际：[\"已写入\", \"待 AI\", \"待 AI\"]）",
+    "✓ 三条 id 连号（实际：[\"20261024-007\", \"20261024-008\", \"20261024-009\"]）",
+    "✓ site.js 的 projects.0.metrics.1.label 写成新值（实际：渠道：X、公众号、RSS、Reddit 等（批量））"
+   ]
+  },
+  {
+   "id": "R14",
+   "name": "修改单只追加：原有条目和外层字段一个不改，本次新增的 id 按天连号",
+   "status": "pass",
+   "evidence": [
+    "✓ 原有 33 条（含 AI 写的 reply / reply_time）原样保留",
+    "✓ 外层字段 page 没被改（实际：首页）",
+    "✓ 外层字段 file 没被改（实际：4-页面/首页/首页-v3/v3-4b-1.html）",
+    "✓ 外层字段 data 没被改（实际：4-页面/首页/首页-v3/data/site.js）",
+    "✓ 外层字段 guide 没被改（实际：4-页面/首页/修改指南.md）",
+    "✓ 外层字段 note 没被改（实际：编辑器保存的修改单。status：已写入 / 已写入，待 AI 跟进 / 待 AI / AI 已处理 / 不改 / 没写入。AI 处理后改 status 并写 reply；要用户挑选或确认的记成「待你确认」，挑选单在 4-页面/首页/调整单/。）",
+    "✓ 新增 9 条，和各次保存回执的 id 一一对应（实际：[\"20261024-001\", \"20261024-002\", \"20261024-003\", \"20261024-004\", \"20261024-005\", \"20261024-006\", \"20261024-007\", \"20261024-008\", \"20261024-009\"]）",
+    "✓ id 从今天已有的 0 条往后连号（实际：[\"20261024-001\", \"20261024-002\", \"20261024-003\", \"20261024-004\", \"20261024-005\", \"20261024-006\", \"20261024-007\", \"20261024-008\", \"20261024-009\"]）"
+   ]
+  },
+  {
+   "id": "R15",
+   "name": "未登记页面 → 404，不建修改单",
+   "status": "pass",
+   "evidence": [
+    "✓ POST /api/save page=不存在的页面 → 404（实际：404 {\"error\": \"没有登记的页面：不存在的页面\"}）",
+    "✓ GET /api/sheet?page=不存在的页面 → 404（实际：404 {\"error\": \"page\"}）",
+    "✓ 没有建出 不存在的页面.json",
+    "✓ POST 未知接口 → 404（实际：404 {\"error\": \"not found\"}）"
+   ]
+  },
+  {
+   "id": "R16",
+   "name": "/api/feedback 保存后 GET 能读回，文件落在 0-记录/修改单/反馈/",
+   "status": "pass",
+   "evidence": [
+    "✓ 200（实际：200 {\"ok\": true, \"updated\": \"2026-10-24 06:59\", \"count\": 2, \"file\": \"0-记录/修改单/反馈/回归测试.json\"}）",
+    "✓ ok = true（实际：true）",
+    "✓ updated 形如 YYYY-MM-DD HH:MM（feedback.js 取 slice(11) 显示时间）（实际：2026-10-24 06:59）",
+    "✓ count = 2（有选项或有文字的条数）（实际：2）",
+    "✓ file = 0-记录/修改单/反馈/回归测试.json（相对博客根目录，feedback.js 显示它）（实际：0-记录/修改单/反馈/回归测试.json）",
+    "✓ 文件确实落在沙盒的 0-记录/修改单/反馈/ 下",
+    "✓ name / page 写进文件",
+    "✓ items 原样写进文件（实际：{\"A1\": {\"title\": \"标题一\", \"choice\": \"按建议\", \"text\": \"文字一\"}, \"B2\": {\"title\": \"标题二\", \"choice\": \"\", \"text\": \"多行\\n文字\"}}）",
+    "✓ updated 和回执一致（实际：2026-10-24 06:59）",
+    "✓ GET 200（实际：200 {\"name\": \"回归测试\", \"page\": \"/首页/调整单/回归测试.html\", \"updated\": \"2026-10-24 06:59\", \"items\": {\"A1\": {\"title\": \"标题一\", \"choice\": \"按建�）",
+    "✓ GET 读回的 items、updated 和保存的一致（实际：{\"A1\": {\"title\": \"标题一\", \"choice\": \"按建议\", \"text\": \"文字一\"}, \"B2\": {\"title\": \"标题二\", \"choice\": \"\", \"text\": \"多行\\n文字\"}}）"
+   ]
+  },
+  {
+   "id": "R17",
+   "name": "/api/feedback 三类调用方的真实请求（调整单 feedback.js、文章页调整台、背景格子调色）",
+   "status": "pass",
+   "evidence": [
+    "✓ POST 文案审查 → 200 ok（实际：200 {\"ok\": true, \"updated\": \"2026-10-24 06:59\", \"count\": 2, \"file\": \"0-记录/修改单/反馈/文案审查.json\"}）",
+    "✓ GET 文案审查 读回一致（实际：{\"X1\": {\"title\": \"《我的2025》要不要留在网站上\", \"choice\": \"按建议\", \"text\": \"\"}, \"S1\": {\"title\": \"标题\", \"choice\": \"\", \"text\": \"回归测试意见\"}}）",
+    "✓ POST 文章页调整台 → 200 ok（实际：200 {\"ok\": true, \"updated\": \"2026-10-24 06:59\", \"count\": 1, \"file\": \"0-记录/修改单/反馈/文章页调整台.json\"}）",
+    "✓ GET 文章页调整台 读回一致（实际：{\"set\": {\"title\": \"文章页按钮和正文排版\", \"choice\": \"自己调的\", \"text\": \"按钮 B「图标小方块」｜正文 霞鹜文楷，字号 17px，行高 1.85\"}}）",
+    "✓ POST 背景格子调色 → 200 ok（实际：200 {\"ok\": true, \"updated\": \"2026-10-24 06:59\", \"count\": 1, \"file\": \"0-记录/修改单/反馈/背景格子调色.json\"}）",
+    "✓ GET 背景格子调色 读回一致（实际：{\"grid\": {\"title\": \"背景格子数值\", \"choice\": \"自己调的\", \"text\": \"自己调的：格子底色 246.5、格线 237｜--g-cell: 1.46; --g-line: 5.42;\"}}）",
+    "✓ 没被请求到的 项目卡片参考.json 一个字节没变"
+   ]
+  },
+  {
+   "id": "R18",
+   "name": "/api/feedback 名字校验、条目清洗、整份覆盖",
+   "status": "pass",
+   "evidence": [
+    "✓ POST name='../逃逸' → 400（实际：400 {\"error\": \"name\"}）",
+    "✓ POST name='' → 400（实际：400 {\"error\": \"name\"}）",
+    "✓ POST name='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' → 400（实际：400 {\"error\": \"name\"}）",
+    "✓ POST name='a b' → 400（实际：400 {\"error\": \"name\"}）",
+    "✓ POST name='名字/斜杠' → 400（实际：400 {\"error\": \"name\"}）",
+    "✓ POST name='.隐藏' → 400（实际：400 {\"error\": \"name\"}）",
+    "✓ GET name=../逃逸 → 400（实际：400 {\"error\": \"name\"}）",
+    "✓ 没有写出 逃逸.json",
+    "✓ GET 没存过的名字 → 200，items 为空对象（实际：200 {\"name\": \"回归测试-没有这份\", \"items\": {}}）",
+    "✓ 200（实际：200 {\"ok\": true, \"updated\": \"2026-10-24 06:59\", \"count\": 1, \"file\": \"0-记录/修改单/反馈/回归测试.json\"}）",
+    "✓ 整份覆盖：上次的 A1/B2 只剩这次合法的 A1；编号超 12 位、值不是对象的被丢掉（实际：[\"A1\"]）",
+    "✓ title 截到 200 字、choice 截到 20 字（实际：[200, 20]）",
+    "✓ 超过 300 条 → 拒绝（4xx/5xx）（实际：500 {\"ok\": false, \"error\": \"items 格式不对\"}）",
+    "✓ items 不是对象 → 拒绝（实际：500 {\"ok\": false, \"error\": \"items 格式不对\"}）"
+   ]
+  },
+  {
+   "id": "R19",
+   "name": "安全：Host 不是本机 → 403",
+   "status": "pass",
+   "evidence": [
+    "✓ GET /api/pages Host=evil.example → 403（实际：403）",
+    "✓ GET /api/pages Host=127.0.0.1.evil.example → 403（实际：403）",
+    "✓ GET /api/pages Host=localhost.evil.example:62082 → 403（实际：403）",
+    "✓ GET /api/pages Host=<测试内网IP> → 403（实际：403）",
+    "✓ GET /编辑器/ Host=evil.example → 403（静态文件也拦）（实际：403）",
+    "✓ GET / Host=evil.example → 403（实际：403）",
+    "✓ POST /api/feedback Host=evil.example → 403（实际：403）",
+    "✓ 没有落盘",
+    "✓ 对照：Host=localhost:62082 → 200（实际：200）",
+    "✓ 对照：Host=127.0.0.1:62082 → 200（实际：200）"
+   ]
+  },
+  {
+   "id": "R20",
+   "name": "安全：Origin 不是本机 → 403",
+   "status": "pass",
+   "evidence": [
+    "✓ POST /api/feedback Origin=http://evil.example → 403（实际：403）",
+    "✓ POST /api/feedback Origin=http://127.0.0.1.evil.example → 403（实际：403）",
+    "✓ POST /api/feedback Origin=null → 403（实际：403）",
+    "✓ POST /api/feedback Origin=https://localhost.evil.example → 403（实际：403）",
+    "✓ POST /api/save Origin=http://evil.example → 403（实际：403）",
+    "✓ 反馈和修改单都没落盘",
+    "✓ 对照：Origin=http://localhost:端口 → 200（实际：200）",
+    "· 不带 Origin（命令行工具直接 POST）：200（旧服务放行；浏览器的 fetch POST 一定带 Origin）"
+   ]
+  },
+  {
+   "id": "R21",
+   "name": "安全：POST 不是 JSON → 415",
+   "status": "pass",
+   "evidence": [
+    "✓ POST /api/save Content-Type=text/plain → 415（实际：415）",
+    "✓ POST /api/save Content-Type=application/x-www-form-urlencoded → 415（实际：415）",
+    "✓ POST /api/save Content-Type=None → 415（实际：415）",
+    "✓ POST /api/feedback Content-Type=text/plain → 415（实际：415）",
+    "✓ POST /api/feedback Content-Type=application/x-www-form-urlencoded → 415（实际：415）",
+    "✓ POST /api/feedback Content-Type=None → 415（实际：415）",
+    "✓ 都没落盘"
+   ]
+  },
+  {
+   "id": "R22",
+   "name": "安全：路径穿越（含编码、符号链接）→ 404，不泄露内容",
+   "status": "pass",
+   "evidence": [
+    "✓ GET /../0-记录/修改单/首页.json → 404（实际：404）",
+    "✓ GET /%2e%2e/0-记录/修改单/首页.json → 404（实际：404）",
+    "✓ GET /%2E%2E%2F0-记录%2F修改单%2F首页.json → 404（实际：404）",
+    "✓ GET /首页/../../0-记录/修改单/首页.json → 404（实际：404）",
+    "✓ GET /首页/..%2f..%2f0-记录/修改单/首页.json → 404（实际：404）",
+    "✓ GET /..%5c0-记录%5c修改单%5c首页.json → 404（实际：404）",
+    "✓ GET /_ds-link-out/修改单/首页.json → 404（实际：404）",
+    "✓ GET /../99-其他/脚本/编辑服务.py → 404（实际：404）",
+    "✓ GET /%2e%2e/%2e%2e/%2e%2e/etc/hosts → 404（实际：404）"
+   ]
+  },
+  {
+   "id": "R23",
+   "name": "安全：点开头的文件和目录 → 404",
+   "status": "pass",
+   "evidence": [
+    "✓ GET /.ds-hidden.txt → 404（实际：404）",
+    "✓ GET /首页/.ds-secret/x.txt → 404（实际：404）",
+    "✓ GET /首页/%2eds-secret/x.txt → 404（实际：404）",
+    "✓ GET /%2Eds-hidden.txt → 404（实际：404）"
+   ]
+  },
+  {
+   "id": "R24",
+   "name": "mp4 Range → 206 + Content-Range（首屏头像跳帧靠它）",
+   "status": "pass",
+   "evidence": [
+    "✓ 不带 Range → 200，整份 982674 字节（实际：200）",
+    "✓ Content-Type: video/mp4（实际：video/mp4）",
+    "✓ Accept-Ranges: bytes（实际：bytes）",
+    "✓ Range: bytes=0-99 → 206（实际：206）",
+    "✓ Content-Range: bytes 0-99/982674（实际：bytes 0-99/982674）",
+    "✓ 正好 100 字节，内容对得上（实际：100）",
+    "✓ Range: bytes=491337- → 206，到文件尾（实际：206 bytes 491337-982673/982674）",
+    "· Range: bytes=-100（规范：取最后 100 字节）：206 bytes 982574-982673/982674，内容是文件尾",
+    "· Range 起点超出文件大小（规范：416）：416 bytes */982674"
+   ]
+  },
+  {
+   "id": "R25",
+   "name": "默认端口 4580（文章页调整台按 location.port 判断能不能自动保存）",
+   "status": "skip",
+   "evidence": [
+    "· posts/_样张/文章页调整台.html:127 写死 location.port === \"4580\""
+   ],
+   "skip": "回归不占 4580（用户可能正开着真编辑服务）；切换时手动验：从 4580 打开文章页调整台，改一个值，看 反馈/文章页调整台.json 更新"
+  },
+  {
+   "id": "U01",
+   "name": "UI：编辑器连上服务，载入首页，修改单页签条数对得上",
+   "status": "pass",
+   "evidence": [
+    "✓ 顶栏状态变成「已连上本机服务」（实际：已连上本机服务）",
+    "✓ 页面下拉里有「首页」（实际：[\"首页\"]）",
+    "✓ iframe 载入了 /首页/首页-v3/v3-7.html",
+    "✓ 「修改单」页签条数 = 修改单文件条数 42（实际：42）"
+   ]
+  },
+  {
+   "id": "U02",
+   "name": "UI：编辑器里双击改字 → 保存 → site.js 写回、修改单记「已写入」",
+   "status": "pass",
+   "evidence": [
+    "· 在页面上改的元素：projects.0.metrics.2.key = 「每日新增」",
+    "✓ 双击后元素进入可编辑状态",
+    "✓ 顶栏「保存」计数 = 1（实际：1）",
+    "✓ site.js 里出现了新文字",
+    "✓ 修改单新增一条「已写入」，field = projects.0.metrics.2.key（实际：{\"status\": \"已写入\", \"field\": \"projects.0.metrics.2.key\", \"old\": \"每日新增\", \"new\": \"每日新增（界面改）\"}）",
+    "· 编辑器提示：已保存。文字直接写回 1 条；0 条进了修改单等 AI。"
+   ]
+  },
+  {
+   "id": "U03",
+   "name": "UI：调整单反馈框边写边存到 0-记录/修改单/反馈/<名字>.json",
+   "status": "pass",
+   "evidence": [
+    "✓ 输入后自动保存，文案审查.json 里出现了新输入",
+    "✓ 底栏显示「已保存 HH:MM · 0-记录/修改单/反馈/文案审查.json」（用的是回执里的 updated 和 file）（实际：已保存 06:59 · 0-记录/修改单/反馈/文案审查.json）"
+   ]
+  }
+ ],
+ "server_log_tail": [
+  "err: 06:59:08  \"POST /api/feedback HTTP/1.1\" 403 -",
+  "err: 06:59:08  \"POST /api/save HTTP/1.1\" 403 -",
+  "err: 06:59:08  \"POST /api/feedback HTTP/1.1\" 200 -",
+  "err: 06:59:08  \"POST /api/feedback HTTP/1.1\" 200 -",
+  "err: 06:59:08  \"POST /api/save HTTP/1.1\" 415 -",
+  "err: 06:59:08  \"POST /api/save HTTP/1.1\" 415 -",
+  "err: 06:59:08  \"POST /api/save HTTP/1.1\" 415 -",
+  "err: 06:59:08  \"POST /api/feedback HTTP/1.1\" 415 -",
+  "err: 06:59:08  \"POST /api/feedback HTTP/1.1\" 415 -",
+  "err: 06:59:08  \"POST /api/feedback HTTP/1.1\" 415 -",
+  "err: 06:59:08  \"GET /%E5%A4%B4%E5%83%8F%E8%B7%9F%E9%9A%8F/avatar.mp4 HTTP/1.1\" 416 -",
+  "err: 06:59:08  \"GET /%E7%BC%96%E8%BE%91%E5%99%A8/api/config HTTP/1.1\" 200 -",
+  "err: 06:59:08  \"GET /%E7%BC%96%E8%BE%91%E5%99%A8/api/pages HTTP/1.1\" 200 -",
+  "err: 06:59:08  \"GET /%E7%BC%96%E8%BE%91%E5%99%A8/api/sheet?page=%E9%A6%96%E9%A1%B5 HTTP/1.1\" 200 -",
+  "err: 06:59:08  \"GET /api/pages HTTP/1.1\" 200 -",
+  "err: 06:59:08  \"GET /api/pages HTTP/1.1\" 200 -",
+  "err: 06:59:09  \"POST /%E7%BC%96%E8%BE%91%E5%99%A8/api/save HTTP/1.1\" 200 -",
+  "err: 06:59:09  \"GET /%E7%BC%96%E8%BE%91%E5%99%A8/api/sheet?page=%E9%A6%96%E9%A1%B5 HTTP/1.1\" 200 -",
+  "err: 06:59:09  \"GET /api/feedback?name=%E6%96%87%E6%A1%88%E5%AE%A1%E6%9F%A5 HTTP/1.1\" 200 -",
+  "err: 06:59:10  \"POST /api/feedback HTTP/1.1\" 200 -"
+ ]
+}

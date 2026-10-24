@@ -65,6 +65,7 @@ def cmd_serve(a):
         sys.exit(f'端口 {port} 起不来：{e}')
     base = f'http://127.0.0.1:{port}'
     print(f'编辑器：{base}{cfg.mount}', flush=True)
+    print(f'字号收敛：{base}{cfg.mount}scale.html', flush=True)
     if proxy:
         print(f'代理：{a.proxy} → {base}/（被编辑的页面经这里转发，和编辑器同源）', flush=True)
     elif cfg.root_redirect:
