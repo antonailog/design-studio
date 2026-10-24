@@ -227,7 +227,8 @@ class TestConfig(unittest.TestCase):
                     {'lock': [{'selector': '.a', 'min': 5, 'max': 1}]}, {'presets': [{'name': '', 'steps': [12]}]},
                     {'presets': [{'name': 'A', 'steps': []}]}, {'presets': [{'name': 'A', 'steps': [12, 12]}]},
                     {'presets': [{'name': 'A', 'steps': ['12px']}]}, {'presets': [{'name': 'A', 'steps': [12], 'upto': [[13, 14]]}]},
-                    {'feedback': '../x'}):
+                    {'feedback': '../x'}, {'keep_from': float('inf')}, {'lock': [{'selector': '.a', 'max': float('inf')}]},
+                    {'presets': [{'name': 'A', 'steps': [12], 'upto': [[float('nan'), 12]]}]}, {'keep': ['.a', None]}):
             with self.assertRaises(ConfigError, msg=str(bad)):
                 Config(self.write({**base, 'scale': bad}))
 

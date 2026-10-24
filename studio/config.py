@@ -5,6 +5,7 @@
 工具本体不含任何站点专属的东西，站点之间的差别全在这份配置里。
 """
 import json
+import math
 import os
 import re
 
@@ -57,8 +58,8 @@ class Page:
         return out
 
 
-def _num(v):
-    return isinstance(v, (int, float)) and not isinstance(v, bool)
+def _num(v):   # 有限的数字：json 会把 Infinity / NaN 读进来，原样回给前端时浏览器解析不了
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)
 
 
 FEEDBACK_NAME = re.compile(r'^[\w一-鿿-]{1,40}$')   # 和 page_mode.FB_NAME 一致：反馈文件名
@@ -77,7 +78,9 @@ def _scale(raw, pages):
     out['pages'] += [[name, url] for name, url in extra.items() if name not in pages]
     keep = raw.get('keep') or ''
     if isinstance(keep, list):
-        keep = ', '.join(str(k) for k in keep)
+        if not all(isinstance(k, str) for k in keep):
+            raise ConfigError('scale.keep 写成数组时每一项都要是 CSS 选择器字符串')
+        keep = ', '.join(keep)
     if not isinstance(keep, str):
         raise ConfigError('scale.keep 要写 CSS 选择器（字符串或字符串数组）')
     out['keep'] = keep
@@ -112,7 +115,7 @@ def _scale(raw, pages):
             px, role = (s[0], s[1] if len(s) > 1 else '') if isinstance(s, list) and s else (s, '')
             if not _num(px) or not 6 <= px <= 200:
                 raise ConfigError(f'{where}.steps 里的 {s!r} 不对：每档写像素数（6—200），可带说明 [12, "标签"]')
-            norm.append([px, str(role)])
+            norm.append([px, '' if role is None else str(role)])
         if len({px for px, _ in norm}) != len(norm):
             raise ConfigError(f'{where}.steps 有重复的档位')
         pxs = {px for px, _ in norm}

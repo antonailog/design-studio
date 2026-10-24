@@ -79,7 +79,11 @@
     for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim()) return true;
     return false;
   }
-  function unpinAll() { for (const el of recs.keys()) el.style.removeProperty('font-size'); }
+  // 撤掉预览：还原页面自己写的行内字号（没有就删掉），不能一律 removeProperty
+  function unpin(el, r) {
+    if (r && r.inl) el.style.setProperty('font-size', r.inl, r.pri); else el.style.removeProperty('font-size');
+  }
+  function unpinAll() { for (const [el, r] of recs) unpin(el, r); }
   function measure() {
     const d = doc(), w = win(); if (!d || !d.body) return;
     for (const el of [...recs.keys()]) if (!el.isConnected) recs.delete(el);
@@ -91,7 +95,7 @@
       let keep = o >= SC.keep_from;
       if (!keep && keepSel) { try { keep = el.matches(keepSel); } catch (e) { /* 选择器写错了，当没写 */ } }
       const lk = SC.lock.find(l => { try { return el.matches(l.selector) && o >= l.min && o <= l.max; } catch (e) { return false; } });
-      recs.set(el, { o, keep, lock: !!lk });
+      recs.set(el, { o, keep, lock: !!lk, inl: el.style.getPropertyValue('font-size'), pri: el.style.getPropertyPriority('font-size') });
     }
     apply();
   }
@@ -107,7 +111,7 @@
     const mark = $('mark').checked, off = holding || !P();
     for (const [el, r] of recs) {
       const t = target(r);
-      if (off) el.style.removeProperty('font-size');
+      if (off) unpin(el, r);
       else el.style.setProperty('font-size', (t == null ? r.o : t) + 'px', 'important');   // 不动的也钉住原值，免得 em 继承跟着父元素变
       const shown = off || t == null ? r.o : t;
       el.toggleAttribute('data-ds-off', mark && !holding && !r.keep && !r.lock && !scale.has(half(shown)));
@@ -174,6 +178,7 @@
   }
   function render(save = true) {
     renderPresets(); renderSteps(); apply();
+    st.presetName = P() ? P().name : '';
     try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { /* 存不了就算了 */ }
     if (save) { clearTimeout(saveTimer); saveTimer = setTimeout(push, 900); }
   }
@@ -217,10 +222,12 @@
       d.head.appendChild(s);
     }
     if (mo) mo.disconnect();
-    let t = 0;
+    let t = 0, last = 0, runs = 0;
     mo = new MutationObserver(list => {   // 页面后来插进来的内容（懒加载、切视图）再量；自己加的探针不算
       if (list.every(m => [...m.addedNodes, ...m.removedNodes].every(n => n.__dsProbe))) return;
-      clearTimeout(t); t = setTimeout(measure, 250);
+      // 节流：至少隔 1 秒、每次载入最多重量 30 次（有的页面按尺寸重建 DOM，预览改了字号又触发重建，会量个不停）
+      if (runs >= 30) return;
+      clearTimeout(t); t = setTimeout(() => { last = performance.now(); runs++; measure(); }, Math.max(250, 1000 - (performance.now() - last)));
     });
     mo.observe(d.body, { childList: true, subtree: true });
     d.addEventListener('mousemove', e => {
@@ -238,7 +245,15 @@
     (d.fonts ? d.fonts.ready : Promise.resolve()).then(() => setTimeout(measureFresh, 300));
   }
   frame.addEventListener('load', hook);
-  function go() { const pg = SC.pages[st.page] || SC.pages[0]; if (!pg) return; recs = new Map(); frame.src = pg[1]; }
+  function go() {
+    const pg = SC.pages[st.page] || SC.pages[0]; if (!pg) return;
+    unpinAll(); recs = new Map();   // 先撤掉预览，免得后面把钉着的预览字号当成原字号
+    const cur = (() => { try { return frame.contentWindow.location.href; } catch (e) { return ''; } })();
+    const next = new URL(pg[1], location.href).href;
+    const sameDoc = cur && cur.split('#')[0] === next.split('#')[0];
+    frame.src = pg[1];
+    if (sameDoc) setTimeout(measureFresh, 500);   // 只差 #：浏览器不重新载入、不触发 load，页面自己切视图后整页重量
+  }
 
   /* ---------- 视口：按 100% 实际像素显示，不缩放 ---------- */
   const VPS = () => [{ w: 0, h: 0, label: '适应窗口' }].concat(cfg.viewports || DEFAULT_VIEWPORTS);
@@ -323,10 +338,19 @@
     presets = SC.presets || [];
     let saved = null;
     try { saved = JSON.parse(localStorage.getItem(KEY)); } catch (e) { /* 浏览器不让读就用默认 */ }
-    if (saved && typeof saved.preset === 'number') st = Object.assign(st, saved);
-    else { const r = presets.findIndex(p => p.recommend); if (r >= 0) st.preset = r; }   // 第一次打开：选推荐的那套
+    const okNum = v => typeof v === 'number' && isFinite(v);
+    const valid = v => v && typeof v === 'object' && okNum(v.preset) && Array.isArray(v.steps) && v.steps.every(okNum)
+      && v.over && typeof v.over === 'object' && !Array.isArray(v.over) && Object.values(v.over).every(Number.isInteger);
+    if (valid(saved)) {   // 坏数据（手改过、旧版本存的）直接丢掉，用默认
+      st = Object.assign(st, saved);
+      const byName = presets.findIndex(p => p.name === saved.presetName);   // 方案按名字找：配置里调了顺序也不会选错
+      if (saved.presetName && byName >= 0) st.preset = byName;
+    } else { const r = presets.findIndex(p => p.recommend); if (r >= 0) st.preset = r; }   // 第一次打开：选推荐的那套
     if (st.preset >= presets.length && SC.presets.length) st.preset = -1;
-    if (P() && st.steps.length !== P().steps.length) { st.steps = P().steps.map(s => s[0]); st.over = {}; st.edited = false; }
+    // 配置里的档位变了（档数或像素），又没手动改过：回到方案默认，免得沿用旧档位还不显示「改过」
+    if (P() && (st.steps.length !== P().steps.length || (!st.edited && st.steps.some((px, i) => px !== P().steps[i][0])))) {
+      st.steps = P().steps.map(s => s[0]); st.over = {}; st.edited = false;
+    }
     if (st.page >= SC.pages.length) st.page = 0;
     $('page').innerHTML = SC.pages.map(([n], i) => `<option value="${i}">${esc(n)}</option>`).join('');
     $('page').value = String(st.page);
