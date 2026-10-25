@@ -45,6 +45,7 @@ python3 design_studio.py serve examples/plain-site/design-studio.json
 | 看页面原本的交互 | 顶栏切到「浏览」，页面照常可点 |
 | 看手机宽度 | 顶栏切「手机 390」（视口预设可配置） |
 | 交给 AI | 「修改单」页签点「复制给 AI 的指令」，发给 Claude Code 或 Codex。它读修改单、逐条改、把状态改成「AI 已处理」并写回复 |
+| 看字号散不散 | 顶栏点「字号收敛」：标出不在刻度里的字，按方案把全站字号并成几档、当场预览，按住「看原样」对比；方案写在站点配置的 `scale` 里（见 [docs/config.md](docs/config.md)），不写也能用 |
 
 保存以后：
 
@@ -111,7 +112,7 @@ python3 tests/regression/run.py --target new \
 design_studio.py      命令行入口
 studio/               本机服务：config（站点配置）、server（静态文件、安全、路由）、page_mode（页面模式接口）、writeback（精确写回）、proxy（代理）、lab_mode（骨架模式接口）
 studio/lab/           骨架模式的 token 工具：build_tokens（json → js/css 并校验）、adapt_tokens（读项目现有 token）
-web/editor/           页面模式的编辑器前端（原生 JS，界面样式自带）
+web/editor/           页面模式的编辑器前端（原生 JS，界面样式自带）；scale.html 是字号收敛页
 web/lab/              骨架模式的前端母本：工作台引擎、零件库页面、页面包模板（forge-design-lab 从这里同步到项目）
 examples/plain-site/  最小示例站
 docs/                 config.md 字段说明、compat.md 兼容清单、立项讨论

@@ -12,11 +12,12 @@ import sys
 import threading
 
 from . import writeback as wb
+from .config import FEEDBACK_NAME
 
 LOCK = threading.Lock()
 SHEET_NOTE = ('design-studio 保存的修改单。status：已写入 / 已写入，待 AI 跟进 / 待 AI / AI 已处理 / 不改 / 没写入。'
               'AI 处理后改 status 并写 reply。')
-FB_NAME = re.compile(r'^[\w一-鿿-]{1,40}$')
+FB_NAME = FEEDBACK_NAME   # 反馈文件名：1—40 个汉字、字母、数字、下划线或横线
 
 
 def now():

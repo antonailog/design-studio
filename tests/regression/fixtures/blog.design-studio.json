@@ -73,7 +73,7 @@
   "ignore_classes": "^(is-|rv$|in$|on$|open$|done$|tick$|active$)",
   "inline_format_classes": ["bt-seg", "mark"],
   "styles": {
-   "sizes": ["--fs-12", "--fs-13", "--fs-14", "--fs-15", "--fs-16", "--fs-18", "--fs-20", "--fs-24", "--fs-26", "--fs-28", "--fs-h4", "--fs-h2", "--fs-stat", "--fs-slogan"],
+   "sizes": ["--fs-12", "--fs-13", "--fs-14", "--fs-15", "--fs-17", "--fs-20", "--fs-24", "--fs-32", "--fs-h4", "--fs-h2", "--fs-stat"],
    "spaces": ["--sp-2", "--sp-4", "--sp-6", "--sp-8", "--sp-10", "--sp-12", "--sp-14", "--sp-16", "--sp-18", "--sp-20", "--sp-24", "--sp-28", "--sp-32", "--sp-40", "--sp-48", "--sp-64", "--sp-88", "--sp-128"],
    "radii": ["--r-xs", "--r-sm", "--r-in", "--r", "--r-pill"],
    "line_heights": ["--lh-display", "--lh-title", "--lh-ui", "--lh-text", "--lh-body"],
@@ -83,5 +83,34 @@
    "bg_colors": ["none", "--bg", "--surface", "--surface-2", "--accent-soft", "--accent"],
    "color_names": {"--fg": "主文字", "--fg-2": "次文字", "--muted": "说明灰", "--accent-ink": "墨绿", "--accent": "黄绿", "--bg": "页面底", "--surface": "卡片白", "--surface-2": "浅灰", "--accent-soft": "浅黄绿", "--line": "细线", "--line-strong": "深一点的线"}
   }
+ },
+ "scale": {
+  "_说明": "字号收敛页 /编辑器/scale.html（10-24 起，原 4-页面/设计规范/字号调整台.html 搬进 design-studio）。方案 A 是 10-24 用户选定的；报告在 0-记录/讨论/2026-10-23-字号收敛审查.md",
+  "pages": {
+   "Skill 页 · 总览": "/skill-showcase/v10.html",
+   "Skill 页 · Forge 集合": "/skill-showcase/v10.html#forge",
+   "Skill 页 · 单个 Skill": "/skill-showcase/v10.html#book-to-mindmap",
+   "文章页 · 04-10": "/posts/2026-04-10/",
+   "文章页 · 03-29": "/posts/2026-03-29/",
+   "文章页 · 03-01": "/posts/2026-03-01/",
+   "文章页 · 02-25": "/posts/2026-02-25/",
+   "文章页 · 02-20": "/posts/2026-02-20/",
+   "文章页 · 02-19": "/posts/2026-02-19/",
+   "文章页 · 02-16": "/posts/2026-02-16/"
+  },
+  "keep": [".zh-name, .zh-name *, .bt-seg, .h4-quote, .h4-quote *, .h2, .h2 *", ".stat .num, .stk-nums b, .stk-nums b *, .bignum b, .bignum b *, .hollow", ".pcard-txt h4, .skg-name, .skg-name *, .page-h1, .vc-name, .tls-shot pre, .tls-shot pre *", ".philo-lead .q, .philo-lead p", ".mono-mark, .stk-nums b em, .bignum b em, .prose code, .zip code, .limits code, .md code"],
+  "keep_from": 34,
+  "lock": [
+   {"selector": ".prose, .prose *, .lede, .lede *", "min": 16, "max": 17.5, "why": "文章正文和导语（桌面 17px、手机 16.5px，10-23 在文章页调整台定的）保持原样"}
+  ],
+  "presets": [
+   {"name": "A 轻收敛", "recommend": true, "note": "8 档。小数并到最近的一档，11 及以下抬到 12，16 并进 15，18—21 并成 20，22—26 并成 24，28—32 并成 32。多数文字只差 0.5—2px，版式风险小。",
+    "steps": [[12, "等宽小字：标签、日期、徽章、计数"], [13, "次要说明：键值的键、图注、侧栏列表"], [14, "界面字：导航、按钮、页签、卡片说明"], [15, "卡片和列表正文"], [17, "阅读正文：首屏介绍、文章正文"], [20, "小标题：文章列表标题、Skill 页小节"], [24, "卡片标题：项目名、Skill 卡名、站名、文章小节"], [32, "页内大标题：文章标题、Skill 页分节"]],
+    "upto": [[12.5, 12], [13.5, 13], [14.5, 14], [16, 15], [17.5, 17], [21.5, 20], [26, 24], [33, 32]]},
+   {"name": "B 重收敛", "note": "6 档，相邻两档差得更开、层级更分明。13 升到 14、15 升到 16，改动面大：项目卡高度和首屏 1440×900 一屏放下都要重验。",
+    "steps": [[12, "小字：标签、日期、键值、图注"], [14, "界面字和卡片说明"], [16, "正文（文章正文仍是 17）"], [20, "小标题"], [24, "卡片标题"], [32, "页内大标题"]],
+    "upto": [[12.5, 12], [14.5, 14], [17.5, 16], [21.5, 20], [26, 24], [33, 32]]}
+  ],
+  "feedback": "字号收敛"
  }
 }
